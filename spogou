@@ -1,0 +1,417 @@
+/** All of this was to create a base for updating the users' passwords with a GAM script. (Now I'm doing it all with GAS :-)
+/home/User/gamadv-xtd3/gam csv gsheet MyUser $1 $2 gam update user ~primaryEmail password "~Password" changepassword $3
+When I run that script I provide the fileID and sheetName and whether I want the kids to change their password or not (on/off). */
+
+// Run "Prepare sheets"
+// Type your domain in A2 and group address in B2 of first sheet
+// Type teacher's email in C2, and whether passwords need to be changed immediately or not (on/off).
+// and then run "Print list of users in Group" to get group memebers in sheet Group.
+// "Print list of users' names in Users" will list users with their full names in sheet Users.
+// Running "Format sheet" will insert a password column.
+// "Set passwords" will of course push the provided passwords.
+// To clean up run "Delete logsheet"
+// "Share sheet" will share the sheet with the teacher you provided in the beginning.
+
+function prepareSheets() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var sheet = spreadsheet.getActiveSheet();
+  sheet.clear();
+  // Naming the sheet so I know how to reference it later.
+  spreadsheet.getActiveSheet().setName('Indata');
+  // Insert headers that can be used in later functions.
+  var header = ['Domain', 'Group Email', 'Teacher Email', 'Change Password on/off', 'ID of file to share'];
+  spreadsheet.appendRow(header).setFrozenRows(1);
+  
+  // Remove rows after 2
+  var spreadsheet = SpreadsheetApp.getActive();
+  var maxRows = spreadsheet.getActiveSheet().getMaxRows(); 
+  spreadsheet.getActiveSheet().deleteRows(3, maxRows-2);
+  
+  // Remove empty columns.
+  var spreadsheet = SpreadsheetApp.getActive();
+  var maxColumns = spreadsheet.getActiveSheet().getMaxColumns(); 
+  var lastColumn = spreadsheet.getActiveSheet().getLastColumn();
+  spreadsheet.getActiveSheet().deleteColumns(lastColumn+1, maxColumns-lastColumn); 
+
+  // Resizing columns.
+  var spreadsheet = SpreadsheetApp.getActive();
+  sheet = spreadsheet.getActiveSheet();
+  var numColumns = spreadsheet.getActiveSheet().getMaxColumns();
+  spreadsheet.getActiveSheet().autoResizeColumns(1, numColumns);
+
+  for (var i=1; i<spreadsheet.getActiveSheet().getMaxColumns()+1; i++){
+  var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
+  spreadsheet.getActiveSheet().setColumnWidth (i, currentwidth+50)
+  }
+
+  // Creating the other sheets and naming them  
+  var activeSpreadsheet1 = SpreadsheetApp.getActiveSpreadsheet();
+  var newSheet1 = activeSpreadsheet1.insertSheet();
+  newSheet1.setName("Group");
+  var header1 = ['Group Name', 'User Id', 'User role', 'User Status'];
+  newSheet1.appendRow(header1).setFrozenRows(1);
+  
+  var activeSpreadsheet2 = SpreadsheetApp.getActiveSpreadsheet();
+  var newSheet2 = activeSpreadsheet2.insertSheet();
+  newSheet2.setName("Users");
+  var header2 = ['primaryEmail', 'FirstName', 'LastName'];
+  newSheet2.appendRow(header2).setFrozenRows(1);
+  
+  var activeSpreadsheet3 = SpreadsheetApp.getActiveSpreadsheet();
+  var newSheet3 = activeSpreadsheet3.insertSheet();
+  newSheet3.setName("Log");
+  
+  // Send me back to first sheet, ready to receive user input
+  SpreadsheetApp.setActiveSheet(spreadsheet.getSheets()[0]);
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRange('A2').activate();
+}
+
+function printUsersFromGroup() {
+  // Get the current spreadsheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  SpreadsheetApp.setActiveSheet(ss.getSheets()[1]);// Switch view to the Group sheet
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRange('A2').activate();
+  // Set the first (0) sheet as the sheet we're working in
+  var sheet = ss.getSheets()[0];
+  // Grab domain & group address from A2 & B2 - long version
+  //var domain = SpreadsheetApp.getActiveSheet().getRange('A2').getValue();
+  //var groupKey = SpreadsheetApp.getActiveSheet().getRange('B2').getValue();
+  // Grab domain & group address from A2 & B2 - short version, since I have already set var sheet.
+  var domain = sheet.getRange('A2').getValue();
+  var groupKey = sheet.getRange('B2').getValue();
+  
+  var onSheet = SpreadsheetApp.getActiveSpreadsheet();
+    var rows = [];
+    var pageToken, page;
+    do {
+        page = AdminDirectory.Members.list(groupKey,
+        {
+            domainName: domain,
+
+            maxResults: 500,
+            pageToken: pageToken,
+        });
+        var members = page.members
+        if (members)
+        {
+            for (var i = 0; i < members.length; i++)
+            {
+                var member = members[i];
+                var row = [groupKey, member.email, member.role, member.status];
+                rows.push(row);
+            }
+        }
+        pageToken = page.nextPageToken;
+    } while (pageToken);
+    if (rows.length > 1)
+    {
+        // Print group members on second sheet called Group.
+        var sheetData = onSheet.getSheetByName("Group")
+        var header = ['Group Name', 'User Id', 'User role', 'User Status'];
+        sheetData.getRange(2, 1, rows.length, header.length).setValues(rows);
+    }
+  SpreadsheetApp.setActiveSheet(ss.getSheets()[1]);// Switch view to the Group sheet
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRange('A2').activate();
+}
+
+function getUserNames() {
+  // Get User/Operator Info
+  // var userEmail = Session.getActiveUser().getEmail(); //Disabled, as it's not used for anything. Leftover from borrowed code.
+  // Get the current spreadsheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  SpreadsheetApp.setActiveSheet(ss.getSheets()[2]);// send me to the Users sheet
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRange('A2').activate();
+  // Set the first (0) sheet as the sheet we're working in
+  //var sheet = ss.getSheets()[0];
+    // No, set the active sheet be the one called Groups
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Group');
+  // Log actions to the sheet called Users
+  var logsheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Users');
+  // Get all data from the second row to the last row with data, and the last column with data
+  var lastrow = sheet.getLastRow();
+  var lastcolumn = sheet.getLastColumn();
+  var range = sheet.getRange(2,1,lastrow-1,lastcolumn);
+  var list = range.getValues();
+    for (var i=0; i<list.length; i++) {
+      // Grab usernames from the second column (1) (first column is 0), then the rest from adjoining columns and set necessary variables. 
+      var userinfo = list[i][1];
+      // Not using the any of the other variables, so just not referring to them
+      //var room = list[i][2].toString();
+      //var asset = list[i][3].toString();
+      // I don't know if the value in i4 can be a string or not, but it works when not a string. Haven't tested as string.
+      //var userinfo = list[i][4].toString();
+      //var userinfo = list[i][4];
+      
+          // For each line, try to get the user with given data, and log the result.
+            try {
+                    var userdata = AdminDirectory.Users.get(userinfo);
+                    var fname = userdata.name.givenName;
+                    var lname = userdata.name.familyName;
+              // Print the gathered info to the logsheet
+              logsheet.appendRow([userinfo, fname, lname]);
+
+              // If the update fails for some reason, log the error.
+            } catch (err) {
+              logsheet.appendRow([userinfo, err]);
+            }
+        }
+  SpreadsheetApp.setActiveSheet(ss.getSheets()[2]);// send me to the Users sheet
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRange('A2').activate();
+
+}
+
+function FormatAndCreateListOfStudentPasswords() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
+  var sheet = spreadsheet.getActiveSheet();
+
+// Start by deleting the first column, which only holds the group email, which I don't need
+// As this is now created by GAS and not GAM there is no group column in this sheet, so not running this delete
+//  sheet.getRange('A:A').activate();
+//  sheet.getActiveSheet().deleteColumns(sheet.getActiveRange().getColumn(), sheet.getActiveRange().getNumColumns());
+  
+// Renaming first column to primaryEmail, so I can reference it with GAM
+// This is already done in the prepareSheets function
+//  sheet.getRange('A1').activate();
+//  sheet.getCurrentCell().setValue('primaryEmail');
+  
+// Naming the sheet so I know how to reference it with GAM
+//  This is already done in the prepareSheets function
+//  sheet.getActiveSheet().setName('Users');
+  
+// Not adding an extra column. The goal is to copy data from B to B
+  sheet.getRange('A:A').activate();
+// Trying to include the getActiveSheet() in the below command fails, apparently it's not needed.
+//  sheet.getActiveSheet().insertColumnsAfter(sheet.getActiveRange().getLastColumn(), 1);
+  sheet.insertColumnsAfter(sheet.getActiveRange().getLastColumn(), 1);
+  sheet.getActiveRange().offset(0, sheet.getActiveRange().getNumColumns(), sheet.getActiveRange().getNumRows(), 1).activate();
+  sheet.getRange('B1').activate();
+  sheet.getCurrentCell().setValue('PasswordTemp');
+    
+// Splitting my familyName column I get Class as a separate column
+  sheet.getRange('D1').activate();
+  sheet.getCurrentCell().setValue('LastName');
+  sheet.getRange('D:D').activate();
+  sheet.getRange('D:D').splitTextToColumns(' - ');
+  sheet.getRange('E1').activate();
+  sheet.getCurrentCell().setValue('Class');
+
+// This entire process isn't necessary with the new code, as I already have givenName in a separate column
+// Copying and then splitting the displayName again, I get the firstName in a separate column. Deleting the rest.
+//  sheet.getRange('E1').activate();
+//  sheet.getRange('C:C').copyTo(sheet.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
+// Adding a delay here. Not necessary with short lists, but may be with longer lists.
+//  SpreadsheetApp.flush();
+//  sheet.getRange('E:E').splitTextToColumns(SpreadsheetApp.TextToColumnsDelimiter.SPACE);
+// Delay
+//  SpreadsheetApp.flush();
+//  sheet.getRange('F:Z').activate();
+//  sheet.getActiveSheet().deleteColumns(sheet.getActiveRange().getColumn(), sheet.getActiveRange().getNumColumns());
+  
+  // Now it's time to create the simple passwords. Based off firstNames in C and four random numbers.
+  // Included a length check of names in C; if too short (passwords must be 8+ characters) repeat firstName.
+  sheet.getRange('B2').activate();
+  sheet.getCurrentCell().setFormula('=IF(LEN(C2) > 3;(C2 & RANDBETWEEN(1111;9999));(C2 & C2 & RANDBETWEEN(1111;9999)))');
+  sheet.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+  
+  // I NEED A DELAY HERE! The previous auto-fill command is slow.
+  // A flush makes sure previous code is done. https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app#flush
+  SpreadsheetApp.flush();
+  
+  // Copying those passwords from B to B, but only values, and not formulas.
+  sheet.getRange('B1').activate();
+  sheet.getRange('B:B').copyTo(sheet.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
+
+  // Once again naming the column to Password, as that's what it needs to be when I'm finished
+  sheet.getRange('B1').activate();
+  sheet.getCurrentCell().setValue('Password');
+  
+// Deleting empty columns
+  var spreadsheet = SpreadsheetApp.getActive();
+  var maxColumns = spreadsheet.getActiveSheet().getMaxColumns(); 
+  var lastColumn = spreadsheet.getActiveSheet().getLastColumn();
+  spreadsheet.getActiveSheet().deleteColumns(lastColumn+1, maxColumns-lastColumn); 
+
+// Remove empty rows
+  var spreadsheet = SpreadsheetApp.getActive();
+  var maxRows = spreadsheet.getActiveSheet().getMaxRows(); 
+  var lastRow = spreadsheet.getActiveSheet().getLastRow();
+  spreadsheet.getActiveSheet().deleteRows(lastRow+1, maxRows-lastRow);
+
+  // Tidying up
+
+  // Adding filters
+  var spreadsheet = SpreadsheetApp.getActive();
+  var sheet = spreadsheet.getActiveSheet();
+  sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).activate();
+  sheet = spreadsheet.getActiveSheet();
+  sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).createFilter();
+  sheet.getRange('A1').activate();
+  //sheet.setFrozenRows(1); // Already done in the prepare sheets function.
+  
+  // Resizing columns
+  var spreadsheet = SpreadsheetApp.getActive();
+  sheet = spreadsheet.getActiveSheet();
+  spreadsheet.getActiveSheet().autoResizeColumns(1, 5);
+  for (var i=1; i<spreadsheet.getActiveSheet().getMaxColumns()+1; i++){
+  var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
+  spreadsheet.getActiveSheet().setColumnWidth (i, currentwidth+20)};
+  
+  SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
+}
+
+function setPasswords() {
+  // Get User/Operator Info
+  var userEmail = Session.getActiveUser().getEmail()
+  // Get the current spreadsheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  // Set the first (0) sheet as the sheet we're working in
+  var sheet = ss.getSheets()[0];
+  // Log actions to the second (1) sheet
+  var logsheet = ss.getSheets()[1];
+  // Get all data from the second row to the last row with data, and the last column with data
+  var lastrow = sheet.getLastRow();
+  var lastcolumn = sheet.getLastColumn();
+  var range = sheet.getRange(2,1,lastrow-1,lastcolumn);
+  var list = range.getValues();
+    for (var i=0; i<list.length; i++) {
+      // Grab username from the first column (0), then the rest from adjoing columns and set necessary variables. 
+      var email = list[i][0].toString();
+      var pass = list[i][1].toString();
+      var chpass = list[i][4].toString();
+          // For each line, try to update the user with given data, and log the result.
+            try {
+              var updateuser = AdminDirectory.Users.update({password:pass, changePasswordAtNextLogin:chpass},email);
+              logsheet.appendRow([new Date(), userEmail, "Password changed"+ " User: "+ email]);
+
+              // If the update fails for some reason, log the error.
+            } catch (err) {
+              logsheet.appendRow([email, err]);
+            }
+        }
+}
+
+function shareSheet() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Indata'), true);
+  spreadsheet.getRange('C2').activate();
+  var teacher = spreadsheet.getRange('C2').getValue();
+  spreadsheet.addEditor(teacher);
+}
+
+function cleanUp(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ['Log','Group','Indata']; 
+//  var sheets = ['Log']; 
+  var numberOfSheets = ss.getSheets().length;
+  for(var s = numberOfSheets-1; s>0 ; s--){ // in my case I never delete the first sheet
+    SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
+    var shName = SpreadsheetApp.getActiveSheet().getName();
+
+    if(sheets.indexOf(shName)>-1){
+      var delSheet = ss.deleteActiveSheet();
+      Utilities.sleep(500);
+    }
+  }
+    //SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);// send me back to first sheet
+    //SpreadsheetApp.setActiveSheet(ss.getSheetByName('Users')); // Neither should be needed, as there should be only one sheet left
+}
+
+
+// The onOpen function is executed automatically every time a Spreadsheet is loaded
+function onOpen() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var menuEntries = [];
+  // When the user clicks on "Set password..." then clicks one of the options, each function is
+  // executed. Here you can easily add more menu entries, if you add more functions/scripts.
+  // As you can see, I have disabled a few, as they are no longer needed as separate functions.
+  menuEntries.push({name: "Prepare sheets", functionName: "prepareSheets"});
+  menuEntries.push(null); // line separator
+  //menuEntries.push({name: "Create sheet for list of users", functionName: "createUsersSheet"});
+  //menuEntries.push(null); // line separator
+  menuEntries.push({name: "Print list of users in Group", functionName: "printUsersFromGroup"});
+  menuEntries.push(null); // line separator
+  menuEntries.push({name: "Print list of users' names in Users", functionName: "getUserNames"});
+  menuEntries.push(null); // line separator
+  menuEntries.push({name: "Format sheet", functionName: "FormatAndCreateListOfStudentPasswords"});
+  menuEntries.push(null); // line separator
+  //menuEntries.push({name: "Create logsheet", functionName: "createLogSheet"});
+  //menuEntries.push(null); // line separator
+  menuEntries.push({name: "Set passwords", functionName: "setPasswords"});
+  menuEntries.push(null); // line separator
+  menuEntries.push({name: "Share sheet", functionName: "shareSheet"});
+  menuEntries.push(null); // line separator
+  menuEntries.push({name: "Clean up", functionName: "cleanUp"});
+  ss.addMenu("Set password on group of users", menuEntries);
+}
+
+// Down here are just some code set as separate functions; used while trying to learn.
+// No longer active parts of the code. Delete as you please.
+
+function addFilter() {
+  /** Adding filters and locked first row. */
+  var spreadsheet = SpreadsheetApp.getActive();
+  var sheet = spreadsheet.getActiveSheet();
+  sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).activate();
+  sheet = spreadsheet.getActiveSheet();
+  sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).createFilter();
+  spreadsheet.getRange('A1').activate();
+  spreadsheet.getActiveSheet().setFrozenRows(1);
+}
+  
+function ResizingColumns() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  sheet = spreadsheet.getActiveSheet();
+  var numColumns = spreadsheet.getActiveSheet().getMaxColumns();
+  spreadsheet.getActiveSheet().autoResizeColumns(1, numColumns);
+
+  for (var i=1; i<spreadsheet.getActiveSheet().getMaxColumns()+1; i++){
+  var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
+  spreadsheet.getActiveSheet().setColumnWidth (i, currentwidth+20)
+  }
+}
+
+function RemoveEmptyRows() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var maxRows = spreadsheet.getActiveSheet().getMaxRows(); 
+  var lastRow = spreadsheet.getActiveSheet().getLastRow();
+  spreadsheet.getActiveSheet().deleteRows(lastRow+1, maxRows-lastRow);
+}
+
+function RemoveRowsFrom2() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var maxRows = spreadsheet.getActiveSheet().getMaxRows(); 
+  spreadsheet.getActiveSheet().deleteRows(3, maxRows-2);
+}
+
+function RemoveEmptyColumns() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var maxColumns = spreadsheet.getActiveSheet().getMaxColumns(); 
+  var lastColumn = spreadsheet.getActiveSheet().getLastColumn();
+  spreadsheet.getActiveSheet().deleteColumns(lastColumn+1, maxColumns-lastColumn); 
+}
+
+function createLogSheet() {
+  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var newSheet = activeSpreadsheet.insertSheet();
+  newSheet.setName("Log");
+}
+
+function createUsersSheet() {
+  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var newSheet = activeSpreadsheet.insertSheet();
+  newSheet.setName("Users");
+}
+
+function moveActiveSheetToPos1(){
+  SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
+}
+  
+/**
+Last edit: 20191102-2021
+*/
