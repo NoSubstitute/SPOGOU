@@ -1,33 +1,37 @@
 /** 
-Use this sheet as a template, never run the actual code in this sheet.
-As this is your original, you will "lose" control if you run the share process and give access to someone else.
+Use this sheet as a template, never run the actual code in this sheet
+As this is your original, you will "lose" control if you run the share process and give access to someone else
 
-Instead, start with making a copy of the entire Spreadsheet and run the menu from the copy.
+Instead, start with making a copy of the entire Spreadsheet and run the menu from the copy
 
-All of this was to create a base for updating the users' passwords with a GAM script. (Now I'm doing it all with GAS :-)
+All of this was to create a base for updating the users' passwords with a GAM script (Now I'm doing it all with GAS :-)
 /home/User/gamadv-xtd3/gam csv gsheet MyUser $1 $2 gam update user ~primaryEmail password "~Password" changepassword $3
-When I run that script I provide the fileID and sheetName and whether I want the kids to change their password or not (on/off).
+When I run that script I provide the fileID and sheetName and whether I want the kids to change their password or not (true/false)
 
-// Run "Prepare sheets"
-// Type your domain in A2 and group address in B2 of first sheet "Indata".
-// Type teacher's email in C2, and whether passwords need to be changed immediately or not (on/off).
-// and then run "Print list of users in Group" to get group members in sheet Group.
-// "Print list of users' names in Users" will list users with their full names in sheet Users.
-// Running "Format sheet" will insert a password column, with passwords based on the user's first name and a handful of numbers.
-// "Set passwords" will of course push the provided passwords.
-// "Share sheet" will share the sheet with the teacher you provided in the beginning.
-// To clean up run "Reset" - NOTE! all the user info you just created will be cleared out, so usually you don't need to run this.
-// After giving away the sheet to someone else, remove the entire apps script by entering Tools / Script Editor,
-// Open File menu and click Remove project. */
+Here's how you use these functons
+
+Run "Prepare sheets"
+Type your domain in A2 and group address in B2 of first sheet "Indata"
+Type teacher's email in C2, and whether passwords need to be changed immediately or not (true/false)
+and then run "Print list of users in Group" to get group members in sheet Group
+"Print list of users' names in Users" will list users with their full names in sheet Users
+Running "Format sheet" will insert a password column, with passwords based on the user's first name and a handful of numbers
+"Set passwords" will of course push the provided passwords
+"Share sheet" will share the sheet with the teacher you provided in the beginning
+To clean up run "Clean Up"
+DO NOT run! "Reset" - NOTE! All the user info you just created will be cleared out, so usually you don't need to run this
+After giving away the sheet to someone else, remove the entire apps script by entering Tools / Script Editor,
+Open File menu and click Remove project
+*/
 
 function prepareSheets() {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheet = spreadsheet.getActiveSheet();
   sheet.clear();
-  // Naming the sheet so I know how to reference it later.
+  // Naming the sheet so I know how to reference it later
   spreadsheet.getActiveSheet().setName('Indata');
-  // Insert headers that can be used in later functions.
-  var header = ['Domain', 'Group Email', 'Teacher Email', 'Change Password on/off', 'ID of file to share'];
+  // Insert headers that can be used in later functions
+  var header = ['Domain', 'Group Email', 'Teacher Email', 'Change Password true/false'];
   spreadsheet.appendRow(header).setFrozenRows(1);
   
   // Remove rows after 2
@@ -83,10 +87,7 @@ function printUsersFromGroup() {
   spreadsheet.getRange('A2').activate();
   // Set the first (0) sheet as the sheet we're working in
   var sheet = ss.getSheets()[0];
-  // Grab domain & group address from A2 & B2 - long version
-  //var domain = SpreadsheetApp.getActiveSheet().getRange('A2').getValue();
-  //var groupKey = SpreadsheetApp.getActiveSheet().getRange('B2').getValue();
-  // Grab domain & group address from A2 & B2 - short version, since I have already set var sheet.
+  // Grab domain & group address from A2 & B2
   var domain = sheet.getRange('A2').getValue();
   var groupKey = sheet.getRange('B2').getValue();
   
@@ -115,7 +116,7 @@ function printUsersFromGroup() {
     } while (pageToken);
     if (rows.length > 1)
     {
-        // Print group members on second sheet called Group.
+        // Print group members on second sheet called Group
         var sheetData = onSheet.getSheetByName("Group")
         var header = ['Group Name', 'User Id', 'User role', 'User Status'];
         sheetData.getRange(2, 1, rows.length, header.length).setValues(rows);
@@ -126,16 +127,12 @@ function printUsersFromGroup() {
 }
 
 function getUserNames() {
-  // Get User/Operator Info
-  // var userEmail = Session.getActiveUser().getEmail(); //Disabled, as it's not used for anything. Leftover from borrowed code.
   // Get the current spreadsheet
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   SpreadsheetApp.setActiveSheet(ss.getSheets()[2]);// send me to the Users sheet
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.getRange('A2').activate();
-  // Set the first (0) sheet as the sheet we're working in
-  //var sheet = ss.getSheets()[0];
-    // No, set the active sheet be the one called Groups
+  // Set the active sheet be the one called Groups
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Group');
   // Log actions to the sheet called Users
   var logsheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Users');
@@ -146,22 +143,14 @@ function getUserNames() {
   var list = range.getValues();
     for (var i=0; i<list.length; i++) {
       // Grab usernames from the second column (1) (first column is 0), then the rest from adjoining columns and set necessary variables. 
-      var userinfo = list[i][1];
-      // Not using the any of the other variables, so just not referring to them
-      //var room = list[i][2].toString();
-      //var asset = list[i][3].toString();
-      // I don't know if the value in i4 can be a string or not, but it works when not a string. Haven't tested as string.
-      //var userinfo = list[i][4].toString();
-      //var userinfo = list[i][4];
-      
-          // For each line, try to get the user with given data, and log the result.
+      var userinfo = list[i][1];      
+          // For each line, try to get the user with given data, and log the result
             try {
                     var userdata = AdminDirectory.Users.get(userinfo);
                     var fname = userdata.name.givenName;
                     var lname = userdata.name.familyName;
               // Print the gathered info to the logsheet
               logsheet.appendRow([userinfo, fname, lname]);
-
               // If the update fails for some reason, log the error.
             } catch (err) {
               logsheet.appendRow([userinfo, err]);
@@ -170,7 +159,6 @@ function getUserNames() {
   SpreadsheetApp.setActiveSheet(ss.getSheets()[2]);// send me to the Users sheet
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.getRange('A2').activate();
-
 }
 
 function FormatAndCreateListOfStudentPasswords() {
@@ -192,9 +180,9 @@ function FormatAndCreateListOfStudentPasswords() {
 //  This is already done in the prepareSheets function
 //  sheet.getActiveSheet().setName('Users');
   
-// Not adding an extra column. The goal is to copy data from B to B
+// Not adding an extra column The goal is to copy data from B to B
   sheet.getRange('A:A').activate();
-// Trying to include the getActiveSheet() in the below command fails, apparently it's not needed.
+// Trying to include the getActiveSheet() in the below command fails, apparently it's not needed
 //  sheet.getActiveSheet().insertColumnsAfter(sheet.getActiveRange().getLastColumn(), 1);
   sheet.insertColumnsAfter(sheet.getActiveRange().getLastColumn(), 1);
   sheet.getActiveRange().offset(0, sheet.getActiveRange().getNumColumns(), sheet.getActiveRange().getNumRows(), 1).activate();
@@ -210,10 +198,10 @@ function FormatAndCreateListOfStudentPasswords() {
   sheet.getCurrentCell().setValue('Class');
 
 // This entire process isn't necessary with the new code, as I already have givenName in a separate column
-// Copying and then splitting the displayName again, I get the firstName in a separate column. Deleting the rest.
+// Copying and then splitting the displayName again, I get the firstName in a separate column. Deleting the rest
 //  sheet.getRange('E1').activate();
 //  sheet.getRange('C:C').copyTo(sheet.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
-// Adding a delay here. Not necessary with short lists, but may be with longer lists.
+// Adding a delay here Not necessary with short lists, but may be with longer lists.
 //  SpreadsheetApp.flush();
 //  sheet.getRange('E:E').splitTextToColumns(SpreadsheetApp.TextToColumnsDelimiter.SPACE);
 // Delay
@@ -221,17 +209,17 @@ function FormatAndCreateListOfStudentPasswords() {
 //  sheet.getRange('F:Z').activate();
 //  sheet.getActiveSheet().deleteColumns(sheet.getActiveRange().getColumn(), sheet.getActiveRange().getNumColumns());
   
-  // Now it's time to create the simple passwords. Based off firstNames in C and four random numbers.
-  // Included a length check of names in C; if too short (passwords must be 8+ characters) repeat firstName.
+  // Now it's time to create the simple passwords Based off firstNames in C and four random numbers
+  // Included a length check of names in C; if too short (passwords must be 8+ characters) repeat firstName
   sheet.getRange('B2').activate();
   sheet.getCurrentCell().setFormula('=IF(LEN(C2) > 3;(C2 & RANDBETWEEN(1111;9999));(C2 & C2 & RANDBETWEEN(1111;9999)))');
   sheet.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
   
-  // I NEED A DELAY HERE! The previous auto-fill command is slow.
+  // I NEED A DELAY HERE! The previous auto-fill command is slow
   // A flush makes sure previous code is done. https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app#flush
   SpreadsheetApp.flush();
   
-  // Copying those passwords from B to B, but only values, and not formulas.
+  // Copying those passwords from B to B, but only values, and not formulas
   sheet.getRange('B1').activate();
   sheet.getRange('B:B').copyTo(sheet.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
 
@@ -283,6 +271,9 @@ function setPasswords() {
   // Log actions to the second (1) sheet
 //  var logsheet = ss.getSheets()[1];
   var logsheet = ss.getSheetByName('Log')
+  // Grab true/false for chpass from Indata sheet
+  var sheetData = ss.getSheetByName("Indata")
+  var chpass = sheetData.getRange('D2').getValue();
   // Get all data from the second row to the last row with data, and the last column with data
   var lastrow = sheet.getLastRow();
   var lastcolumn = sheet.getLastColumn();
@@ -292,7 +283,6 @@ function setPasswords() {
       // Grab username from the first column (0), then the rest from adjoing columns and set necessary variables. 
       var email = list[i][0].toString();
       var pass = list[i][1].toString();
-      var chpass = list[i][4].toString();
           // For each line, try to update the user with given data, and log the result.
             try {
               var updateuser = AdminDirectory.Users.update({password:pass, changePasswordAtNextLogin:chpass},email);
@@ -307,13 +297,14 @@ function setPasswords() {
 
 function shareSheet() {
   var spreadsheet = SpreadsheetApp.getActive();
+  // Get the teacher's email from Indata!C2, share sheet with user
   spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Indata'), true);
   spreadsheet.getRange('C2').activate();
   var teacher = spreadsheet.getRange('C2').getValue();
   spreadsheet.addEditor(teacher);
 }
 
-// Reset the sheet. Remove all content so the sheet can be used again.
+// Reset the sheet Remove ALL content so the sheet can be used again.
 function resetSheet(){
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Log'), true);
@@ -343,33 +334,33 @@ function resetSheet(){
   sheet.setName('empty');
 }
 
-// Replaced this function with resetSheet above, so the same sheet can be re-used as a template again and again.
-//function cleanUp(){
-//  var ss = SpreadsheetApp.getActiveSpreadsheet();
-//  var sheets = ['Log','Group','Indata']; 
-////  var sheets = ['Log']; 
-//  var numberOfSheets = ss.getSheets().length;
-//  for(var s = numberOfSheets-1; s>0 ; s--){ // in my case I never delete the first sheet
-//    SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
-//    var shName = SpreadsheetApp.getActiveSheet().getName();
-//
-//    if(sheets.indexOf(shName)>-1){
-//      var delSheet = ss.deleteActiveSheet();
-//      Utilities.sleep(500);
-//    }
-//  }
-//    //SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);// send me back to first sheet
-//    //SpreadsheetApp.setActiveSheet(ss.getSheetByName('Users')); // Neither should be needed, as there should be only one sheet left
-//}
+// Re-activated this function so I can clean sheet after sharing with teacher
+// Had previusly replaced it with with resetSheet above, so the same sheet can be re-used as a template again and again
+// Do note that you still have to remove the script project manually, else the teacher will be able to run password changes again later
+function cleanUp(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ['Log','Group','Indata']; 
+  var numberOfSheets = ss.getSheets().length;
+  for(var s = numberOfSheets-1; s>0 ; s--){ // in my case I never delete the first sheet
+    SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
+    var shName = SpreadsheetApp.getActiveSheet().getName();
+    if(sheets.indexOf(shName)>-1){
+      var delSheet = ss.deleteActiveSheet();
+      Utilities.sleep(500);
+    }
+  }
+    //SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);// send me back to first sheet
+    //SpreadsheetApp.setActiveSheet(ss.getSheetByName('Users')); // Neither should be needed, as there should be only one sheet left
+}
 
 
 // The onOpen function is executed automatically every time a Spreadsheet is loaded
 function onOpen() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var menuEntries = [];
-  // When the user clicks on "Set password..." then clicks one of the options, each function is
-  // executed. Here you can easily add more menu entries, if you add more functions/scripts.
-  // As you can see, I have disabled a few, as they are no longer needed as separate functions.
+  // When the user clicks on "Set password..." then clicks one of the options, each function is executed
+  // Here you can easily add more menu entries, if you add more functions/scripts
+  // As you can see, I have disabled a few, as they are no longer needed as separate functions
   menuEntries.push({name: "Prepare sheets", functionName: "prepareSheets"});
   menuEntries.push(null); // line separator
   //menuEntries.push({name: "Create sheet for list of users", functionName: "createUsersSheet"});
@@ -385,15 +376,15 @@ function onOpen() {
   menuEntries.push({name: "Set passwords", functionName: "setPasswords"});
   menuEntries.push(null); // line separator
   menuEntries.push({name: "Share sheet", functionName: "shareSheet"});
-  menuEntries.push(null); // line separator
-  menuEntries.push({name: "Reset", functionName: "resetSheet"});
 //  menuEntries.push(null); // line separator
-//  menuEntries.push({name: "Clean up", functionName: "cleanUp"}); //Replaced this function with resetSheet, so the sheet can be re-used.
+//  menuEntries.push({name: "Reset", functionName: "resetSheet"});
+  menuEntries.push(null); // line separator
+  menuEntries.push({name: "Clean up", functionName: "cleanUp"}); //Don't forget to remove the script project manually, else the teacher will be able to run password changes again later
   ss.addMenu("Set password on group of users", menuEntries);
 }
 
-// Down here are just some code set as separate functions; used while trying to learn.
-// No longer active parts of the code. Delete as you please.
+// Down here are just some code set as separate functions; used while trying to learn
+// No longer active parts of the code Delete as you please
 
 function addFilter() {
   /** Adding filters and locked first row. */
@@ -455,5 +446,5 @@ function moveActiveSheetToPos1(){
 }
   
 /**
-Last edit: 20200121-2218
+Last edit: 20200812-1400
 */
