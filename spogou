@@ -87,8 +87,11 @@ function prepareSheets() {
   var spreadsheet = SpreadsheetApp.getActive();
   SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Indata"));
   spreadsheet.getRange('D2').setValue("FALSE");
-  spreadsheet.getRange('A2').setValue("edu.lomma.se");
-  spreadsheet.getRange('B2').activate();
+  spreadsheet.getRange('A2').setValue("Type your domain here");
+  spreadsheet.getRange('B2').setValue("Replace with Group email");
+  spreadsheet.getRange('C2').setValue("Replace with teacher email");
+  spreadsheet.getRange('D2').setValue("FALSE");
+  spreadsheet.getRange('A2').activate();
 }
 
 function printUsersFromGroup() {
