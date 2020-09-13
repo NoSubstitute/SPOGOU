@@ -41,7 +41,7 @@ function prepareSheets() {
   // Naming the sheet so I know how to reference it later
   spreadsheet.getActiveSheet().setName('Indata');
   // Insert headers that can be used in later functions
-  var header = ['Domain', 'Group Email', 'Teacher Email', 'Change Password true/false'];
+  var header = ['Domain', 'Group Email', 'Teacher Email', 'Change Password true/false', 'Instructions'];
   spreadsheet.appendRow(header).setFrozenRows(1);
   
   // Remove rows after 2
@@ -86,11 +86,23 @@ function prepareSheets() {
   // Send me back to first sheet, ready to receive user input
   var spreadsheet = SpreadsheetApp.getActive();
   SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Indata"));
-  spreadsheet.getRange('D2').setValue("FALSE");
   spreadsheet.getRange('A2').setValue("Type your domain here");
   spreadsheet.getRange('B2').setValue("Replace with Group email");
   spreadsheet.getRange('C2').setValue("Replace with teacher email");
   spreadsheet.getRange('D2').setValue("FALSE");
+  spreadsheet.getRange('E2').setValue("Fill in data, then run Prepare passwords");
+  
+    // Resizing columns
+  var spreadsheet = SpreadsheetApp.getActive();
+  sheet = spreadsheet.getActiveSheet();
+  var numColumns = spreadsheet.getActiveSheet().getMaxColumns();
+  spreadsheet.getActiveSheet().autoResizeColumns(1, numColumns);
+
+  for (var i=1; i<spreadsheet.getActiveSheet().getMaxColumns()+1; i++){
+  var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
+  spreadsheet.getActiveSheet().setColumnWidth (i, currentwidth+50)
+  }
+  
   spreadsheet.getRange('A2').activate();
 }
 
@@ -386,5 +398,5 @@ function onOpen() {
 }
   
 /**
-Last edit: 20200908-2025
+Last edit: 20200913-1206
 */
