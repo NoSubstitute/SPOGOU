@@ -1,6 +1,5 @@
 # SPOGOU - Set Passwords On a Group Of Users
-How to set passwords on users provided only an address to a G Suite group,
-and share the results back to the teacher who asked for it.
+How to set passwords on many users (a class or an entire school year) provided only an address to a G Suite group, and share the results back to the teacher who asked for it.
 
 Info and instructions right here in the wiki.
 
