@@ -100,6 +100,7 @@ function prepareSheets() {
   var spreadsheet = SpreadsheetApp.getActive();
   SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Indata")); 
   spreadsheet.getRange('B2').activate();
+  SpreadsheetApp.flush();
 }
 
 function printUsersFromGroup() {
