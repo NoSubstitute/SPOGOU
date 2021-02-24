@@ -1,118 +1,128 @@
-/** 
-  Use this sheet as a template, never run the actual code in this sheet
-  As this is your original, you will "lose" control if you run the share process and give access to someone else
+function onInstall(e) {
+  onOpen(e);
+}
 
-  Instead, start with making a copy of the entire Spreadsheet and run the menu from the copy
+function onOpen(e) {
+  SpreadsheetApp.getUi().createAddonMenu()
+    // .addItem('Menu item', 'openSidebar')
+    // .addSeparator()
+    .addItem('Start', 'openSidebarPrepSheets')
+    // .addSeparator()
+    // .addItem('Prepare passwords', 'openSidebarPrepPasswords')
+    // .addSeparator()
+    // .addItem('Set passwords', 'openSidebarSetPasswords')
+    .addToUi()
+}
 
-  All of this was to create a base for updating the users' passwords with a GAM script (Now I'm doing it all with GAS :-)
-  /home/User/gamadv-xtd3/gam csv gsheet MyUser $1 $2 gam update user ~primaryEmail password "~Password" changepassword $3
-  When I run that script I provide the fileID and sheetName and whether I want the kids to change their password or not (true/false)
+function openSidebarPrepSheets() {
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('Preparing Sheets').setWidth(370);
+  var userProperties = PropertiesService.getUserProperties();
+  Logger.log(userProperties);
+  var userEmail = Session.getActiveUser().getEmail()
+  var domain = userEmail.split('@').pop();
+  PropertiesService.getUserProperties().setProperty("userDomainProp", domain);
+  Logger.log(domain);
+  html.domain = domain;
+  Logger.log(html.domain);
+  SpreadsheetApp.getUi().showSidebar(html);
+  prepareSheets();
+}
 
-  Here's how you use these functons
+function openSidebarPrepPasswords() {
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepPasswords').setTitle('Preparing Passwords').setWidth(370);
+  SpreadsheetApp.getUi().showSidebar(html);
+  listUsersFormatPassword();
+}
 
-  Run "Prepare sheets"
-  Type your domain in A2 and group address in B2 of first sheet "Indata"
-  Type teacher's email in D2, and whether passwords need to be changed immediately or not (true/false)
-  and then run "Print list of users in Group" to get group members in sheet Group
+function openSidebarSetPasswords() {
+  var html = HtmlService.createHtmlOutputFromFile('SidebarSetPasswords').setTitle('Setting Passwords').setWidth(370);
+  SpreadsheetApp.getUi().showSidebar(html);
+  setPassShareClean();
+}
 
-  "Prepare Passwords" will then run several functions in one command
-      "Print list of users' names in Users" will list users with their full names in sheet Users
-      "Format sheet" will insert a password column, with passwords based on the user's first name and a handful of numbers
-  The user then gets a chance to take a look at the prepared passwords, to see if some need manual fixing
+function openSidebarFinished() {
+  var p = PropertiesService.getScriptProperties();
+  p.setProperty("sidebarFinishedProp", "open");
+  var html = HtmlService.createHtmlOutputFromFile('SidebarFinished').setTitle('All done!').setWidth(370);
+  SpreadsheetApp.getUi().showSidebar(html);
+}
 
-  "Set passwords" will of course push the provided passwords, but also run the last two functions, 
-  so it looks nice and the right person gets access to the list of credentials
-
-      "Share sheet" will share the sheet with the teacher you provided in the beginning
-      "Clean Up" will remove all sheets but 'Users'
-
-  After giving away the sheet to someone else, remove the entire apps script by entering Tools / Script Editor,
-  Open File menu and click Remove project
-
-  Still searching to see if that can be automated in some way
-
-  Future development is turning the final sheet into a printable doc with each user's data in sticker format
-*/
+function closeSidebarFinished() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty("sidebarFinishedProp") == "open") {
+    cleanUp();
+    SpreadsheetApp.flush();
+    var html = HtmlService.createHtmlOutput("<script>google.script.host.close();</script>");
+    SpreadsheetApp.getUi().showSidebar(html);
+    p.setProperty("sidebarFinishedProp", "close");
+  }
+}
 
 function prepareSheets() {
   // Get User/Operator email address
-  var userEmail = Session.getActiveUser().getEmail()
+  //var userEmail = Session.getActiveUser().getEmail()
   // Crop the domain adress from the user's email address, so we can insert that later
-  var domainIndata = userEmail.split('@').pop()
-  // Creating the Indata sheet
-  var spreadsheet = SpreadsheetApp.getActive();
-  var sheet = spreadsheet.insertSheet();
-  // Naming the sheet so I know how to reference it later
-  sheet.setName("Indata");
-  SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Indata"));
-  spreadsheet.getRange('A2').activate();
+  //var domain = userEmail.split('@').pop()
 
-  // Insert headers that can be used in later functions
-  var header = ['Domain', 'Group Email', 'Teacher Email', 'Change Password true/false'];
-  spreadsheet.appendRow(header).setFrozenRows(1);
-
-  // Remove rows after 2
-  //  var spreadsheet = SpreadsheetApp.getActive();// Already have the active spreadsheet
-  var maxRows = spreadsheet.getActiveSheet().getMaxRows();
-  spreadsheet.getActiveSheet().deleteRows(3, maxRows - 2);
-
-  // Remove empty columns
-  //  var spreadsheet = SpreadsheetApp.getActive();// Already have the active spreadsheet
-  var maxColumns = spreadsheet.getActiveSheet().getMaxColumns();
-  var lastColumn = spreadsheet.getActiveSheet().getLastColumn();
-  spreadsheet.getActiveSheet().deleteColumns(lastColumn + 1, maxColumns - lastColumn);
-
-  // Prefill the necessary data in Indata
-  spreadsheet.getRange('A2').setValue(domainIndata).setShowHyperlink(false);
-  spreadsheet.getRange('B2').setValue("Replace with Group email").setShowHyperlink(false);
-  spreadsheet.getRange('C2').setValue("Replace with teacher email").setShowHyperlink(false);
-  spreadsheet.getRange('D2').setValue("FALSE");
-
-  // Resizing columns
-  //  var spreadsheet = SpreadsheetApp.getActive();// Already have the active spreadsheet
-  //  sheet = spreadsheet.getActiveSheet();// Already have the active sheet
-  var numColumns = spreadsheet.getActiveSheet().getMaxColumns();
-  spreadsheet.getActiveSheet().autoResizeColumns(1, numColumns);
-
-  for (var i = 1; i < spreadsheet.getActiveSheet().getMaxColumns() + 1; i++) {
-    var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
-    spreadsheet.getActiveSheet().setColumnWidth(i, currentwidth + 50)
-  }
-
+  var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
+  Logger.log(domain);
   // Creating the other sheets and naming them  
   var activeSpreadsheet1 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet1 = activeSpreadsheet1.insertSheet();
   newSheet1.setName("Group");
   var header1 = ['Group Name', 'User Id', 'User role', 'User Status'];
   newSheet1.appendRow(header1).setFrozenRows(1);
+  SpreadsheetApp.flush();
 
   var activeSpreadsheet2 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet2 = activeSpreadsheet2.insertSheet();
   newSheet2.setName("Users");
   var header2 = ['primaryEmail', 'FirstName', 'LastName'];
   newSheet2.appendRow(header2).setFrozenRows(1);
+  SpreadsheetApp.flush();
 
   var activeSpreadsheet3 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet3 = activeSpreadsheet3.insertSheet();
   newSheet3.setName("Log");
+  SpreadsheetApp.flush();
 
   // Send me back to first sheet, ready to receive user input
   var spreadsheet = SpreadsheetApp.getActive();
-  SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Indata"));
-  spreadsheet.getRange('B2').activate();
+  SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Instructions"));
+  // spreadsheet.getRange('A61').setValue(domain).setShowHyperlink(false);
+  // spreadsheet.getRange('A52').activate();
+  // Logger.log(domain);
+  //document.getElementById("putDomain").innerHTML += domain;
+}
+
+function saveData(groupemail1, teacheremail1, changePass1) {
+  var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
+  PropertiesService.getUserProperties().setProperty("groupEmailProp", groupemail1);
+  PropertiesService.getUserProperties().setProperty("teacherEmailProp", teacheremail1);
+  PropertiesService.getUserProperties().setProperty("changePassProp", changePass1);
+  var result = [groupemail1, teacheremail1, changePass1, domain]
+  Logger.log([result]);
+  return [result];
 }
 
 function printUsersFromGroup() {
+  //// Get User/Operator email address
+  //var userEmail = Session.getActiveUser().getEmail()
+  //// Crop the domain adress from the user's email address, so we can insert that later
+  //var domain = userEmail.split('@').pop()
+
+  var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
+  Logger.log(domain);
+
+  var groupKey = PropertiesService.getUserProperties().getProperty("groupEmailProp");
+  Logger.log(groupKey);
+
   // Get the current spreadsheet
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   SpreadsheetApp.setActiveSheet(ss.getSheetByName("Group"));// Switch view to the Group sheet
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.getRange('A2').activate();
-  // Set the Indata sheet as the sheet we're working in
-  var sheet = ss.getSheetByName("Indata");
-  // Grab domain & group address from A2 & B2 on Indata
-  var domain = sheet.getRange('A2').getValue();
-  var groupKey = sheet.getRange('B2').getValue();
+
   // Grab group members and create the array
   var onSheet = SpreadsheetApp.getActiveSpreadsheet();
   var rows = [];
@@ -200,8 +210,6 @@ function FormatAndCreateListOfStudentPasswords() {
   // sheet.getRange('D:D').splitTextToColumns(' - ');
   // sheet.getRange('E1').activate();
   // sheet.getCurrentCell().setValue('Class');
-  // sheet.getRange('F1').activate();
-  // sheet.getCurrentCell().setValue('PreparePass');
   sheet.getRange('E1').activate();
   sheet.getCurrentCell().setValue('PreparePass');
 
@@ -283,8 +291,8 @@ function FormatAndCreateListOfStudentPasswords() {
     var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
     spreadsheet.getActiveSheet().setColumnWidth(i, currentwidth + 25)
   };
-  // Move sheet Users to be the second sheet
-  SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(2);
+  // Move sheet Users to be the first sheet, to prepare for cleanup
+  SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
 }
 
 function setPasswords() {
@@ -296,9 +304,11 @@ function setPasswords() {
   var sheet = ss.getSheetByName("Users");
   // Log actions to the Log sheet
   var logsheet = ss.getSheetByName('Log')
-  // Grab true/false for chpass from Indata sheet D2
-  var sheetData = ss.getSheetByName("Indata")
-  var chpass = sheetData.getRange('D2').getValue();
+  // Grab true/false for chpass from properties
+  var getchangePassProp = PropertiesService.getUserProperties().getProperty("changePassProp");
+  Logger.log(getchangePassProp);
+  var chpass = getchangePassProp
+  Logger.log(chpass);
   // Get all data from the second row to the last row with data, and the last column with data
   var lastrow = sheet.getLastRow();
   var lastcolumn = sheet.getLastColumn();
@@ -321,21 +331,29 @@ function setPasswords() {
 }
 
 function shareSheet() {
+  // Get User/Operator Info
+  var userEmail = Session.getActiveUser().getEmail()
   var spreadsheet = SpreadsheetApp.getActive();
-  // Get the teacher's email from Indata!C2, share sheet with user
-  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Indata'), true);
-  spreadsheet.getRange('C2').activate();
-  var teacher = spreadsheet.getRange('C2').getValue();
-  spreadsheet.addEditor(teacher);
+  // Get the teacher's email from properties, share sheet with user
+  var getteacherEmailProp = PropertiesService.getUserProperties().getProperty("teacherEmailProp");
+  var teacher = getteacherEmailProp
+
+  // Log actions to the Log sheet
+  var logsheet = spreadsheet.getSheetByName('Log')
+  try {
+    spreadsheet.addEditor(teacher);
+    logsheet.appendRow([new Date(), userEmail, "Sheet shared with:" + teacher]);
+    // If the share fails for some reason, log the error
+  } catch (err) {
+    logsheet.appendRow([teacher, err]);
+  }
 }
 
-// Re-activated this function so I can clean sheet after sharing with teacher
-// Do note that you still have to remove the script project manually, else the teacher will be able to run password changes again later
 function cleanUp() {
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = ['Log', 'Group', 'Indata'];
+  var sheets = ['Log', 'Group','Instructions'];
   var numberOfSheets = ss.getSheets().length;
   for (var s = numberOfSheets - 1; s > 0; s--) { // in my case I never delete the first sheet
     SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
@@ -363,41 +381,12 @@ function setPassShareClean() {
   SpreadsheetApp.flush();
   shareSheet();
   SpreadsheetApp.flush();
-  cleanUp();
+  // cleanUp(); // Moved cleanUp to be part of the closeSidebarFinished process, so use can verify in Log that all went well
   SpreadsheetApp.flush();
-}
-
-// The onOpen function is executed automatically every time a Spreadsheet is loaded
-function onOpen() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var menuEntries = [];
-  // When the user clicks on "Set password..." then clicks one of the options, each function is executed
-  // Here you can easily add more menu entries, if you add more functions/scripts
-  // As you can see, I have disabled a few, as they are no longer needed as separate functions
-  menuEntries.push({ name: "Prepare sheets", functionName: "prepareSheets" });
-  menuEntries.push(null); // line separator
-  menuEntries.push({ name: "Prepare passwords", functionName: "listUsersFormatPassword" });
-  menuEntries.push(null); // line separator
-  //menuEntries.push({name: "Print list of users in Group", functionName: "printUsersFromGroup"});
-  //menuEntries.push(null); // line separator
-  //menuEntries.push({name: "Print list of users' names in Users", functionName: "getUserNames"});
-  //menuEntries.push(null); // line separator
-  //menuEntries.push({name: "Format sheet", functionName: "FormatAndCreateListOfStudentPasswords"});
-  //menuEntries.push(null); // line separator
-  menuEntries.push({ name: "Set passwords", functionName: "setPassShareClean" });
-  //menuEntries.push(null); // line separator
-  //menuEntries.push({name: "Set passwords", functionName: "setPasswords"});
-  //menuEntries.push(null); // line separator
-  //menuEntries.push({name: "Share sheet", functionName: "shareSheet"});
-  //menuEntries.push(null); // line separator
-  //menuEntries.push({name: "Clean up", functionName: "cleanUp"}); //Don't forget to remove the script project manually, else the teacher will be able to run password changes again later
-  ss.addMenu("Set password on group of users", menuEntries);
+  openSidebarFinished();
 }
 
 /**
-  Last edit: 2021-02-24-0010
-  Disabling the Class Splitter, as others may not have that.
-  Adjusting some column references because of that.
-  
-  **Final edit of script version, before changing to addon version.**
+Last edit: 20210224-0045
+Making SPOGOU into an addon
 */
