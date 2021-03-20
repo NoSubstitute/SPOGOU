@@ -20,20 +20,17 @@
     })
   </script>
   <div class="container">
-    <h6>There are only three steps of this process, and you just ran the first one</h6>
+    <h6><b>There are only three steps of this process, and you just ran the first one</b></h6>
     <blockquote>
-      <h6><b>Start</b> - Prepares sheets and asks you to fill in the necessary data below</h6>
+      <h6><b>Start</b> - I prepared the worksheets and ask you to fill in the necessary data below</h6>
     </blockquote>
-    <h6><b>Prepare passwords</b> - create easy passwords based on FirstName and some random numbers</h6>
-    <h6><b>Set passwords</b> - It does just that, and also shares and cleans up the spreadsheet</h6>
+    <h6><b>Prepare passwords</b> - I will create easy passwords based on FirstName and some random numbers</h6>
+    <h6><b>Set passwords</b> - I'll do just that, and also share and clean up the spreadsheet</h6>
 
-    <div class="card-panel yellow">SPOGOU just created the sheets necessary for this process.<br><br>
-    If you don't see a sheet called <b>Users</b>, you should <b>stop</b>, refresh the browser, then click the
-      <i>Prepare Passwords</i> option in the <b>SPOGOU</b> menu to get back here to fill in the necessary data below.
+    <div class="card-panel yellow">I just created the sheets necessary for this process.<br><br>If you don't see a sheet called <b>Users</b>, you should <b>stop</b>, refresh the browser, then click the <i>Prepare Passwords</i> option in the <b>SPOGOU</b> menu to get back here to fill in the necessary data below.
     </div>
     <div class="card-panel blue lighten-2">(If you see a sheet called Users.)<br>
-      <h6>Fill in group and teacher emails below, make a choice whether you want to force a password reset on first
-        login, and then click <i>Save Data</i>, followed by <i>Next</i>.</h6>
+      <h6>Fill in group and teacher emails below, make a choice whether you want to force a password reset on first login, and then click <i>Save Data</i>, followed by <i>Next</i>.</h6>
     </div>
 
     <div class="row">
@@ -56,7 +53,7 @@
         <button type="button" class="btn-small waves-effect waves-light" id="btnPrepPass" disabled>Next</button>
       </div>
     </div>
-      <table>
+      <!--<table>
         <thead>
           <tr>
             <th>
@@ -75,7 +72,7 @@
         </thead>
         <tbody id="inData">
         </tbody>
-      </table>
+      </table>-->
   </div>
 	<script>
 			document.addEventListener('DOMContentLoaded', function() {
@@ -107,7 +104,7 @@
     }
 
       function goSaveData(){
-        document.getElementById("inData").innerHTML = "";
+        // document.getElementById("inData").innerHTML = "";
         var groupemail1 = document.getElementById("groupemail").value;
         var teacheremail1 = document.getElementById("teacheremail").value;
         var changePass1 = document.getElementById("changePass").value;
@@ -134,15 +131,6 @@
           value4 = innerArray[3];
       
           console.log(value1 + "__" + value2 + "__" + value3  + "__" + value4)
-        
-          // let htmlinData='<style>td,th{border:0px solid black;}</style><table>';
-          //   htmlinData+='<tr><td>' + value1 + '</td><td>' + value2 + '</td><td>' + value3 + '</td><td>' + value4 + '</td></tr>';
-          // htmlinData+='</table>';
-
-          // console.log(htmlinData)
-
-          // var myTable = document.getElementById("inData");
-          // myTable.insertAdjacentHTML("beforeend", htmlinData);
         }
         buttonNext.disabled=false;
       }
