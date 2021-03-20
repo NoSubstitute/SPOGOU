@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<base target="_top">
+</head>
+
+<body>
+	<!-- <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"> -->
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>
+		var elems=""
+      var options=""
+	</script>
+	<script>
+		$(document).ready(function(){
+        M.updateTextFields();
+      })
+	</script>
+	<div class="container">
+		<h6>Now on to step two!</h6>
+    <h6><b>Start</b> - Prepares sheets and asks you to fill in the necessary data below</h6>
+    <blockquote>
+    <h6><b>Prepare passwords</b> - create easy passwords based on FirstName and some random numbers</h6>
+    </blockquote>
+    <h6><b>Set passwords</b> - It does just that, and also shares and cleans up the spreadsheet</h6>
+    <div class="card-panel blue lighten-2">
+    <h6>Fill in group and teacher emails below, make a choice whether you want to force a password reset on first
+        login, and then click <i>Save Data</i>, followed by <i>Next</i>.</h6>
+    </div>
+      <div class="row">
+        <div class="input-field col s10">
+        <input placeholder="Enter group email here" type="text" id="groupemail" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()"><br>
+        <input placeholder="Enter teacher email here" type="text" id="teacheremail" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()">
+      </div>
+        <div class="input-field col s10">
+          <select id="changePass">
+            <option value="FALSE">FALSE</option>
+            <option value="TRUE">TRUE</option>
+          </select>
+            <label>Change Password TRUE/FALSE</label>
+            Select TRUE if you want to force a password reset on first login
+        </div>
+        <div class="col s4">
+        <button type="button" class="btn-small waves-effect waves-light " id="btnSaveData" disabled>Save data</button>
+      </div>
+      <div class="col s4">
+        <button type="button" class="btn-small waves-effect waves-light" id="btnPrepPass" disabled>Next</button>
+      </div>
+      </div>
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <h6>Group</h6>
+              </th>
+              <th>
+                <h6>Teacher</h6>
+              </th>
+              <th>
+                <h6>ChPass</h6>
+              </th>
+              <th>
+                <h6>Domain</h6>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="inData">
+          </tbody>
+        </table>
+  </div>
+	<script>
+			document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('select');
+        var instance = M.FormSelect.init(elems, options);
+      });
+      var instance = M.FormSelect.getInstance(elems);
+
+      document.getElementById("btnSaveData").addEventListener("click",goSaveData);
+
+      var field1 = document.getElementById("groupemail");
+      var field2 = document.getElementById("teacheremail");
+      var buttonSave = document.getElementById("btnSaveData");
+      var buttonNext = document.getElementById("btnPrepPass");
+
+    function validate(){
+      if(!isEmpty(field1)&&!isEmpty(field2)){
+        buttonSave.disabled=false;
+      }else{
+        buttonSave.disabled=true;
+      }
+    }
+    function isEmpty(element){
+      if(element.value.length==0){
+        return true;
+      }else{
+        return false;
+      }
+    }
+
+      function goSaveData(){
+        document.getElementById("inData").innerHTML = "";
+        var groupemail1 = document.getElementById("groupemail").value;
+        var teacheremail1 = document.getElementById("teacheremail").value;
+        var changePass1 = document.getElementById("changePass").value;
+        console.log(groupemail1);
+        console.log(teacheremail1);
+        console.log(changePass1);
+        google.script.run
+        .withSuccessHandler(printutData)
+        .saveData(groupemail1,teacheremail1,changePass1);
+      }
+
+      window.printutData = function(utData) {
+        console.log(utData);
+        
+        var i,innerArray;
+        var L = utData.length;
+      
+        for (i=0;i<L;i++) {
+          innerArray = utData[i];
+      
+          value1 = innerArray[0]; 
+          value2 = innerArray[1];
+          value3 = innerArray[2];
+          value4 = innerArray[3];
+      
+          console.log(value1 + "__" + value2 + "__" + value3  + "__" + value4)
+        
+          let htmlinData='<style>td,th{border:0px solid black;}</style><table>';
+            htmlinData+='<tr><td>' + value1 + '</td><td>' + value2 + '</td><td>' + value3 + '</td><td>' + value4 + '</td></tr>';
+          htmlinData+='</table>';
+
+          console.log(htmlinData)
+
+          var myTable = document.getElementById("inData");
+          myTable.insertAdjacentHTML("beforeend", htmlinData);
+        }
+        buttonNext.disabled=false;
+      }
+      document.getElementById("btnPrepPass").addEventListener("click",goPrepPass);
+
+      function goPrepPass(){
+        google.script.run.openSidebarPrepPasswords();
+      }
+	</script>
+
+</body>
+
+</html>
