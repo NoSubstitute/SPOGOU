@@ -20,7 +20,7 @@ function startPreparing() {
 }
 
 function openSidebarPrepSheets() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('SPOGOU Preparing Sheets').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('SPOGOU preparing sheets').setWidth(370);
   var userProperties = PropertiesService.getUserProperties();
   Logger.log(userProperties);
   var userEmail = Session.getActiveUser().getEmail()
@@ -33,7 +33,7 @@ function openSidebarPrepSheets() {
 }
 
 function openSidebarPrepInData() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepInData').setTitle('SPOGOU Gathering InData').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepInData').setTitle('SPOGOU gathering InData').setWidth(370);
   var userProperties = PropertiesService.getUserProperties();
   Logger.log(userProperties);
   var userEmail = Session.getActiveUser().getEmail()
@@ -46,13 +46,19 @@ function openSidebarPrepInData() {
 }
 
 function openSidebarPrepPasswords() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepPasswords').setTitle('SPOGOU Preparing Passwords').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepPasswords').setTitle('SPOGOU preparing passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
   listUsersFormatPassword();
+  SpreadsheetApp.flush();
+}
+
+function openSidebarPasswordsPreped() {
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPasswordsPreped').setTitle('SPOGOU finished preparing passwords').setWidth(370);
+  SpreadsheetApp.getUi().showSidebar(html);
 }
 
 function openSidebarSetPasswords() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarSetPasswords').setTitle('SPOGOU Setting Passwords').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarSetPasswords').setTitle('SPOGOU setting passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
   setPassShare();
 }
@@ -75,22 +81,7 @@ function closeSidebarFinished() {
   }
 }
 
-function showsheets() {
-var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-var newSheet1 = SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Users"));
-newSheet1.showSheet();
-var newSheet2 = SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Group"));
-newSheet2.showSheet();
-var newSheet3 = SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Log"));
-newSheet3.showSheet();
-}
-
 function prepareSheets() {
-  // Get User/Operator email address
-  //var userEmail = Session.getActiveUser().getEmail()
-  // Crop the domain adress from the user's email address, so we can insert that later
-  //var domain = userEmail.split('@').pop()
-
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   Logger.log(domain);
   // Creating the other sheets and naming them  
@@ -100,7 +91,6 @@ function prepareSheets() {
   var header1 = ['Group Name', 'User Id', 'User role', 'User Status'];
   newSheet1.appendRow(header1).setFrozenRows(1);
   SpreadsheetApp.flush();
-  newSheet1.showSheet();
 
   var activeSpreadsheet2 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet2 = activeSpreadsheet2.insertSheet();
@@ -108,21 +98,15 @@ function prepareSheets() {
   var header2 = ['primaryEmail', 'FirstName', 'LastName'];
   newSheet2.appendRow(header2).setFrozenRows(1);
   SpreadsheetApp.flush();
-  newSheet2.showSheet();
 
   var activeSpreadsheet3 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet3 = activeSpreadsheet3.insertSheet();
   newSheet3.setName("Log");
   SpreadsheetApp.flush();
-  newSheet3.showSheet();
 
   // Send me back to first sheet, ready to receive user input
   var spreadsheet = SpreadsheetApp.getActive();
   SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Instructions"));
-  // spreadsheet.getRange('A61').setValue(domain).setShowHyperlink(false);
-  // spreadsheet.getRange('A52').activate();
-  // Logger.log(domain);
-  //document.getElementById("putDomain").innerHTML += domain;
 }
 
 function saveData(groupemail1, teacheremail1, changePass1) {
@@ -136,11 +120,6 @@ function saveData(groupemail1, teacheremail1, changePass1) {
 }
 
 function printUsersFromGroup() {
-  //// Get User/Operator email address
-  //var userEmail = Session.getActiveUser().getEmail()
-  //// Crop the domain adress from the user's email address, so we can insert that later
-  //var domain = userEmail.split('@').pop()
-
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   Logger.log(domain);
 
@@ -260,8 +239,7 @@ function FormatAndCreateListOfStudentPasswords() {
   sheet.getRange('E1').activate();
   sheet.getRange('E:E').copyTo(sheet.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
 
-  // I NEED A DELAY HERE! The previous auto-fill command is slow
-  // A flush makes sure previous code is done. https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app#flush
+  // Another delay needed here
   SpreadsheetApp.flush();
 
   // Removing characters that can't be used in passwords
@@ -270,8 +248,7 @@ function FormatAndCreateListOfStudentPasswords() {
   sheet.getCurrentCell().setFormula('=SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(E2;"å";"a");"ä";"a");"ö";"o");"Å";"A");"Ä";"A");"Ö";"O");"é";"e");"Ü";"u");"ü";"u");"";"-");"ë";"e");"è";"e");"Ø";"O");"ø";"o");"õ";"o");"ó";"o");"€";"€");"€";"€")');
   sheet.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
 
-  // I NEED A DELAY HERE! The previous auto-fill command is slow
-  // A flush makes sure previous code is done. https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app#flush
+  // Another delay needed here
   SpreadsheetApp.flush();
 
   // Copying those clean passwords from B to B, but only values, and not formulas
@@ -313,7 +290,6 @@ function FormatAndCreateListOfStudentPasswords() {
   sheet = spreadsheet.getActiveSheet();
   sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).createFilter();
   sheet.getRange('A1').activate();
-  //sheet.setFrozenRows(1); // Already done in the prepare sheets function
 
   // Resizing columns
   var spreadsheet = SpreadsheetApp.getActive();
@@ -408,6 +384,7 @@ function listUsersFormatPassword() {
   SpreadsheetApp.flush();
   FormatAndCreateListOfStudentPasswords();
   SpreadsheetApp.flush();
+  openSidebarPasswordsPreped();
 }
 
 // Once again I combine several functions into one, so the process is shorter for the user
@@ -419,8 +396,25 @@ function setPassShare() {
   openSidebarFinished();
 }
 
+// So I don't have to do the cleanup manually, nor revert to earlier version; keeping Instructions instead of Users
+function cleanUpDEV() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Instructions'), true);
+  SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
+  SpreadsheetApp.flush();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ['Log', 'Group','Users'];
+  var numberOfSheets = ss.getSheets().length;
+  for (var s = numberOfSheets - 1; s > 0; s--) { // in my case I never delete the first sheet
+    SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
+    var shName = SpreadsheetApp.getActiveSheet().getName();
+    if (sheets.indexOf(shName) > -1) {
+      var delSheet = ss.deleteActiveSheet();
+      Utilities.sleep(500);
+    }
+  }
+}
+
 /**
-Last edit: 20210320-1509
-Restructured as it's not possible to force new sheets to display
-Telling user to reload Sheet and run next menu option if sheet Users doesn't appear
+Last edit: 20210320-1648
 */
