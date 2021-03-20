@@ -6,16 +6,21 @@ function onOpen(e) {
   SpreadsheetApp.getUi().createAddonMenu()
     // .addItem('Menu item', 'openSidebar')
     // .addSeparator()
-    .addItem('Start', 'openSidebarPrepSheets')
-    // .addSeparator()
-    // .addItem('Prepare passwords', 'openSidebarPrepPasswords')
-    // .addSeparator()
-    // .addItem('Set passwords', 'openSidebarSetPasswords')
+    .addItem('Start', 'startPreparing')
+    .addSeparator()
+    .addItem('Prepare passwords', 'openSidebarPrepInData')
+    .addSeparator()
+    .addItem('Set passwords', 'openSidebarSetPasswords')
     .addToUi()
 }
 
+function startPreparing() {
+  prepareSheets();
+  openSidebarPrepSheets();
+}
+
 function openSidebarPrepSheets() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('Preparing Sheets').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('SPOGOU Preparing Sheets').setWidth(370);
   var userProperties = PropertiesService.getUserProperties();
   Logger.log(userProperties);
   var userEmail = Session.getActiveUser().getEmail()
@@ -25,25 +30,37 @@ function openSidebarPrepSheets() {
   html.domain = domain;
   Logger.log(html.domain);
   SpreadsheetApp.getUi().showSidebar(html);
-  prepareSheets();
+}
+
+function openSidebarPrepInData() {
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepInData').setTitle('SPOGOU Gathering InData').setWidth(370);
+  var userProperties = PropertiesService.getUserProperties();
+  Logger.log(userProperties);
+  var userEmail = Session.getActiveUser().getEmail()
+  var domain = userEmail.split('@').pop();
+  PropertiesService.getUserProperties().setProperty("userDomainProp", domain);
+  Logger.log(domain);
+  html.domain = domain;
+  Logger.log(html.domain);
+  SpreadsheetApp.getUi().showSidebar(html);
 }
 
 function openSidebarPrepPasswords() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepPasswords').setTitle('Preparing Passwords').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepPasswords').setTitle('SPOGOU Preparing Passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
   listUsersFormatPassword();
 }
 
 function openSidebarSetPasswords() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarSetPasswords').setTitle('Setting Passwords').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarSetPasswords').setTitle('SPOGOU Setting Passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
-  setPassShareClean();
+  setPassShare();
 }
 
 function openSidebarFinished() {
   var p = PropertiesService.getScriptProperties();
   p.setProperty("sidebarFinishedProp", "open");
-  var html = HtmlService.createHtmlOutputFromFile('SidebarFinished').setTitle('All done!').setWidth(370);
+  var html = HtmlService.createHtmlOutputFromFile('SidebarFinished').setTitle('SPOGOU is finished!').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
@@ -56,6 +73,16 @@ function closeSidebarFinished() {
     SpreadsheetApp.getUi().showSidebar(html);
     p.setProperty("sidebarFinishedProp", "close");
   }
+}
+
+function showsheets() {
+var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+var newSheet1 = SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Users"));
+newSheet1.showSheet();
+var newSheet2 = SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Group"));
+newSheet2.showSheet();
+var newSheet3 = SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Log"));
+newSheet3.showSheet();
 }
 
 function prepareSheets() {
@@ -73,6 +100,7 @@ function prepareSheets() {
   var header1 = ['Group Name', 'User Id', 'User role', 'User Status'];
   newSheet1.appendRow(header1).setFrozenRows(1);
   SpreadsheetApp.flush();
+  newSheet1.showSheet();
 
   var activeSpreadsheet2 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet2 = activeSpreadsheet2.insertSheet();
@@ -80,11 +108,13 @@ function prepareSheets() {
   var header2 = ['primaryEmail', 'FirstName', 'LastName'];
   newSheet2.appendRow(header2).setFrozenRows(1);
   SpreadsheetApp.flush();
+  newSheet2.showSheet();
 
   var activeSpreadsheet3 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet3 = activeSpreadsheet3.insertSheet();
   newSheet3.setName("Log");
   SpreadsheetApp.flush();
+  newSheet3.showSheet();
 
   // Send me back to first sheet, ready to receive user input
   var spreadsheet = SpreadsheetApp.getActive();
@@ -150,6 +180,7 @@ function printUsersFromGroup() {
     var header = ['Group Name', 'User Id', 'User role', 'User Status'];
     sheetData.getRange(2, 1, rows.length, header.length).setValues(rows);
   }
+  SpreadsheetApp.flush();
   SpreadsheetApp.setActiveSheet(ss.getSheetByName('Group'));// Switch view to the Group sheet
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.getRange('A2').activate();
@@ -185,6 +216,7 @@ function getUserNames() {
       logsheet.appendRow([userinfo, err]);
     }
   }
+  SpreadsheetApp.flush();
   SpreadsheetApp.setActiveSheet(ss.getSheetByName("Users"));// send me to the Users sheet
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.getRange('A2').activate();
@@ -291,8 +323,10 @@ function FormatAndCreateListOfStudentPasswords() {
     var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
     spreadsheet.getActiveSheet().setColumnWidth(i, currentwidth + 25)
   };
+  SpreadsheetApp.flush();
   // Move sheet Users to be the first sheet, to prepare for cleanup
   SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
+  SpreadsheetApp.flush();
 }
 
 function setPasswords() {
@@ -328,6 +362,7 @@ function setPasswords() {
       logsheet.appendRow([email, err]);
     }
   }
+  SpreadsheetApp.flush();
 }
 
 function shareSheet() {
@@ -376,17 +411,16 @@ function listUsersFormatPassword() {
 }
 
 // Once again I combine several functions into one, so the process is shorter for the user
-function setPassShareClean() {
+function setPassShare() {
   setPasswords();
   SpreadsheetApp.flush();
   shareSheet();
-  SpreadsheetApp.flush();
-  // cleanUp(); // Moved cleanUp to be part of the closeSidebarFinished process, so use can verify in Log that all went well
   SpreadsheetApp.flush();
   openSidebarFinished();
 }
 
 /**
-Last edit: 20210224-0045
-Making SPOGOU into an addon
+Last edit: 20210320-1509
+Restructured as it's not possible to force new sheets to display
+Telling user to reload Sheet and run next menu option if sheet Users doesn't appear
 */
