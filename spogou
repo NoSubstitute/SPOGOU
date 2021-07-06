@@ -4,8 +4,6 @@ function onInstall(e) {
 
 function onOpen(e) {
   SpreadsheetApp.getUi().createAddonMenu()
-    // .addItem('Menu item', 'openSidebar')
-    // .addSeparator()
     .addItem('Start', 'startPreparing')
     .addSeparator()
     .addItem('Prepare passwords', 'openSidebarPrepInData')
@@ -22,26 +20,26 @@ function startPreparing() {
 function openSidebarPrepSheets() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('SPOGOU preparing sheets').setWidth(370);
   var userProperties = PropertiesService.getUserProperties();
-  Logger.log(userProperties);
+//  Logger.log(userProperties);
   var userEmail = Session.getActiveUser().getEmail()
   var domain = userEmail.split('@').pop();
   PropertiesService.getUserProperties().setProperty("userDomainProp", domain);
-  Logger.log(domain);
+//  Logger.log(domain);
   html.domain = domain;
-  Logger.log(html.domain);
+//  Logger.log(html.domain);
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
 function openSidebarPrepInData() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarPrepInData').setTitle('SPOGOU gathering InData').setWidth(370);
   var userProperties = PropertiesService.getUserProperties();
-  Logger.log(userProperties);
+//  Logger.log(userProperties);
   var userEmail = Session.getActiveUser().getEmail()
   var domain = userEmail.split('@').pop();
   PropertiesService.getUserProperties().setProperty("userDomainProp", domain);
-  Logger.log(domain);
+//  Logger.log(domain);
   html.domain = domain;
-  Logger.log(html.domain);
+//  Logger.log(html.domain);
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
@@ -83,7 +81,20 @@ function closeSidebarFinished() {
 
 function prepareSheets() {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
-  Logger.log(domain);
+//  Logger.log(domain);
+  // Naming the spreadsheet
+  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var spreadsheet = activeSpreadsheet.setName("SPOGOU");  
+  var sheet = SpreadsheetApp.getActiveSheet();
+  // Clearing and naming the first sheet, so we can return to it later
+  sheet.clear();
+  sheet.clearConditionalFormatRules();
+  sheet.clearNotes();
+  sheet.setFrozenColumns(0);
+  sheet.setFrozenRows(0);
+//  sheet.getFilter().remove();
+  sheet.setName("Log");
+  SpreadsheetApp.flush();
   // Creating the other sheets and naming them  
   var activeSpreadsheet1 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet1 = activeSpreadsheet1.insertSheet();
@@ -99,14 +110,9 @@ function prepareSheets() {
   newSheet2.appendRow(header2).setFrozenRows(1);
   SpreadsheetApp.flush();
 
-  var activeSpreadsheet3 = SpreadsheetApp.getActiveSpreadsheet();
-  var newSheet3 = activeSpreadsheet3.insertSheet();
-  newSheet3.setName("Log");
-  SpreadsheetApp.flush();
-
   // Send me back to first sheet, ready to receive user input
   var spreadsheet = SpreadsheetApp.getActive();
-  SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Instructions"));
+  SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Log"));
 }
 
 function saveData(groupemail1, teacheremail1, changePass1) {
@@ -115,16 +121,16 @@ function saveData(groupemail1, teacheremail1, changePass1) {
   PropertiesService.getUserProperties().setProperty("teacherEmailProp", teacheremail1);
   PropertiesService.getUserProperties().setProperty("changePassProp", changePass1);
   var result = [groupemail1, teacheremail1, changePass1, domain]
-  Logger.log([result]);
+//  Logger.log([result]);
   return [result];
 }
 
 function printUsersFromGroup() {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
-  Logger.log(domain);
+//  Logger.log(domain);
 
   var groupKey = PropertiesService.getUserProperties().getProperty("groupEmailProp");
-  Logger.log(groupKey);
+//  Logger.log(groupKey);
 
   // Get the current spreadsheet
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -231,7 +237,7 @@ function FormatAndCreateListOfStudentPasswords() {
   sheet.getCurrentCell().setFormula('=IFS(LEN(C2) > 3;C2 & RANDBETWEEN(1111;9999);LEN(C2) > 2;C2 & RANDBETWEEN(11111;99999);LEN(C2) > 1;C2 & C2 & RANDBETWEEN(1111;9999))');
   sheet.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
 
-  // I NEED A DELAY HERE! The previous auto-fill command is slow
+  // ADDING A DELAY HERE! The previous auto-fill command is slow
   // A flush makes sure previous code is done. https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app#flush
   SpreadsheetApp.flush();
 
@@ -316,9 +322,9 @@ function setPasswords() {
   var logsheet = ss.getSheetByName('Log')
   // Grab true/false for chpass from properties
   var getchangePassProp = PropertiesService.getUserProperties().getProperty("changePassProp");
-  Logger.log(getchangePassProp);
+//  Logger.log(getchangePassProp);
   var chpass = getchangePassProp
-  Logger.log(chpass);
+//  Logger.log(chpass);
   // Get all data from the second row to the last row with data, and the last column with data
   var lastrow = sheet.getLastRow();
   var lastcolumn = sheet.getLastColumn();
@@ -416,5 +422,5 @@ function cleanUpDEV() {
 }
 
 /**
-Last edit: 20210320-1648
+Last edit: 20210706
 */
