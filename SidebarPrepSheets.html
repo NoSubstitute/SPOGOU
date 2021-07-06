@@ -27,8 +27,8 @@
     <h6><b>Prepare passwords</b> - I will create easy passwords based on FirstName and some random numbers</h6>
     <h6><b>Set passwords</b> - I'll do just that, and also share and clean up the spreadsheet</h6>
 
-    <div class="card-panel yellow">I just created the sheets necessary for this process.<br><br>If you don't see a sheet called <b>Users</b>, you should <b>stop</b>, refresh the browser, then click the <i>Prepare Passwords</i> option in the <b>SPOGOU</b> menu to get back here to fill in the necessary data below.
-    </div>
+    <!--<div class="card-panel yellow">I just created the sheets necessary for this process.<br><br>If you don't see a sheet called <b>Users</b>, you should <b>stop</b>, refresh the browser, then click the <i>Prepare Passwords</i> option in the <b>SPOGOU</b> menu to get back here to fill in the necessary data below.
+    </div>-->
     <div class="card-panel blue lighten-2">(If you see a sheet called Users.)<br>
       <h6>Fill in group and teacher emails below, make a choice whether you want to force a password reset on first login, and then click <i>Save Data</i>, followed by <i>Next</i>.</h6>
     </div>
@@ -88,16 +88,16 @@
         var groupemail1 = document.getElementById("groupemail").value;
         var teacheremail1 = document.getElementById("teacheremail").value;
         var changePass1 = document.getElementById("changePass").value;
-        console.log(groupemail1);
-        console.log(teacheremail1);
-        console.log(changePass1);
+//        console.log(groupemail1);
+//        console.log(teacheremail1);
+//        console.log(changePass1);
         google.script.run
         .withSuccessHandler(printutData)
         .saveData(groupemail1,teacheremail1,changePass1);
       }
 
       window.printutData = function(utData) {
-        console.log(utData);
+//        console.log(utData);
         
         var i,innerArray;
         var L = utData.length;
@@ -110,7 +110,7 @@
           value3 = innerArray[2];
           value4 = innerArray[3];
       
-          console.log(value1 + "__" + value2 + "__" + value3  + "__" + value4)
+//          console.log(value1 + "__" + value2 + "__" + value3  + "__" + value4)
         }
         buttonNext.disabled=false;
       }
