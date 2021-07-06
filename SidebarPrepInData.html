@@ -24,8 +24,8 @@
     <blockquote>
     <h6><b>Start</b> - I prepared the worksheets and ask you to fill in the necessary data below</h6>
     </blockquote>
-    <h6><b>Prepare passwords</b> - I will create easy passwords based on FirstName and some random numbers</h6>
-    <h6><b>Set passwords</b> - I will do just that, and also share and clean up the spreadsheet</h6>
+    <h6><b>Prepare passwords</b></h6>
+    <h6><b>Set passwords</b></h6>
     <div class="card-panel blue lighten-2">
     <h6>Fill in group and teacher emails below, make a choice whether you want to force a password reset on first login, and then click <i>Save Data</i>, followed by <i>Next</i>.</h6>
     </div>
@@ -84,16 +84,16 @@
         var groupemail1 = document.getElementById("groupemail").value;
         var teacheremail1 = document.getElementById("teacheremail").value;
         var changePass1 = document.getElementById("changePass").value;
-        console.log(groupemail1);
-        console.log(teacheremail1);
-        console.log(changePass1);
+//        console.log(groupemail1);
+//        console.log(teacheremail1);
+//        console.log(changePass1);
         google.script.run
         .withSuccessHandler(printutData)
         .saveData(groupemail1,teacheremail1,changePass1);
       }
 
       window.printutData = function(utData) {
-        console.log(utData);
+//        console.log(utData);
         
         var i,innerArray;
         var L = utData.length;
@@ -106,7 +106,7 @@
           value3 = innerArray[2];
           value4 = innerArray[3];
       
-          console.log(value1 + "__" + value2 + "__" + value3  + "__" + value4)
+//          console.log(value1 + "__" + value2 + "__" + value3  + "__" + value4)
         }
         buttonNext.disabled=false;
       }
