@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 	<base target="_top">
 </head>
-
 <body>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
@@ -26,13 +24,8 @@
     </blockquote>
     <h6><b>Prepare passwords</b></h6>
     <h6><b>Set passwords</b></h6>
-
-    <!--<div class="card-panel yellow">I just created the sheets necessary for this process.<br><br>If you don't see a sheet called <b>Users</b>, you should <b>stop</b>, refresh the browser, then click the <i>Prepare Passwords</i> option in the <b>SPOGOU</b> menu to get back here to fill in the necessary data below.
-    </div>-->
-    <div class="card-panel blue lighten-2">(If you see a sheet called Users.)<br>
-      <h6>Fill in group and teacher emails below, make a choice whether you want to force a password reset on first login, and then click <i>Save Data</i>, followed by <i>Next</i>.</h6>
+    <div class="card-panel blue lighten-2"><h6>Fill in group and teacher emails below, make a choice whether you want to force a password reset on first login, and then click <i>Save Data</i>, followed by <i>Next</i>.</h6>
     </div>
-
     <div class="row">
       <div class="input-field col s10">
         <input placeholder="Enter group email here" type="text" id="groupemail" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()"><br>
@@ -60,14 +53,11 @@
         var instance = M.FormSelect.init(elems, options);
       });
       var instance = M.FormSelect.getInstance(elems);
-
       document.getElementById("btnSaveData").addEventListener("click",goSaveData);
-
       var field1 = document.getElementById("groupemail");
       var field2 = document.getElementById("teacheremail");
       var buttonSave = document.getElementById("btnSaveData");
       var buttonNext = document.getElementById("btnPrepPass");
-
     function validate(){
       if(!isEmpty(field1)&&!isEmpty(field2)){
         buttonSave.disabled=false;
@@ -82,46 +72,30 @@
         return false;
       }
     }
-
       function goSaveData(){
-        // document.getElementById("inData").innerHTML = "";
         var groupemail1 = document.getElementById("groupemail").value;
         var teacheremail1 = document.getElementById("teacheremail").value;
         var changePass1 = document.getElementById("changePass").value;
-//        console.log(groupemail1);
-//        console.log(teacheremail1);
-//        console.log(changePass1);
         google.script.run
         .withSuccessHandler(printutData)
         .saveData(groupemail1,teacheremail1,changePass1);
       }
-
       window.printutData = function(utData) {
-//        console.log(utData);
-        
         var i,innerArray;
         var L = utData.length;
-      
         for (i=0;i<L;i++) {
           innerArray = utData[i];
-      
           value1 = innerArray[0]; 
           value2 = innerArray[1];
           value3 = innerArray[2];
-          value4 = innerArray[3];
-      
-//          console.log(value1 + "__" + value2 + "__" + value3  + "__" + value4)
+          value4 = innerArray[3];    
         }
         buttonNext.disabled=false;
       }
       document.getElementById("btnPrepPass").addEventListener("click",goPrepPass);
-
       function goPrepPass(){
         google.script.run.openSidebarPrepPasswords();
       }
-
 	</script>
-
 </body>
-
 </html>
