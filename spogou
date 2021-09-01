@@ -5,10 +5,6 @@ function onInstall(e) {
 function onOpen(e) {
   SpreadsheetApp.getUi().createAddonMenu()
     .addItem('Start', 'startPreparing')
-    .addSeparator()
-    .addItem('Prepare passwords', 'openSidebarPrepInData')
-    .addSeparator()
-    .addItem('Set passwords', 'openSidebarSetPasswords')
     .addToUi()
 }
 
@@ -20,26 +16,13 @@ function startPreparing() {
 function openSidebarPrepSheets() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('SPOGOU preparing sheets').setWidth(370);
   var userProperties = PropertiesService.getUserProperties();
-//  Logger.log(userProperties);
+  //  Logger.log(userProperties);
   var userEmail = Session.getActiveUser().getEmail()
   var domain = userEmail.split('@').pop();
   PropertiesService.getUserProperties().setProperty("userDomainProp", domain);
-//  Logger.log(domain);
+  //  Logger.log(domain);
   html.domain = domain;
-//  Logger.log(html.domain);
-  SpreadsheetApp.getUi().showSidebar(html);
-}
-
-function openSidebarPrepInData() {
-  var html = HtmlService.createHtmlOutputFromFile('SidebarPrepInData').setTitle('SPOGOU gathering InData').setWidth(370);
-  var userProperties = PropertiesService.getUserProperties();
-//  Logger.log(userProperties);
-  var userEmail = Session.getActiveUser().getEmail()
-  var domain = userEmail.split('@').pop();
-  PropertiesService.getUserProperties().setProperty("userDomainProp", domain);
-//  Logger.log(domain);
-  html.domain = domain;
-//  Logger.log(html.domain);
+  //  Logger.log(html.domain);
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
@@ -81,10 +64,10 @@ function closeSidebarFinished() {
 
 function prepareSheets() {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
-//  Logger.log(domain);
+  //  Logger.log(domain);
   // Naming the spreadsheet
   var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var spreadsheet = activeSpreadsheet.setName("SPOGOU");  
+  var spreadsheet = activeSpreadsheet.setName("SPOGOU");
   var sheet = SpreadsheetApp.getActiveSheet();
   // Clearing and naming the first sheet, so we can return to it later
   sheet.clear();
@@ -92,7 +75,7 @@ function prepareSheets() {
   sheet.clearNotes();
   sheet.setFrozenColumns(0);
   sheet.setFrozenRows(0);
-//  sheet.getFilter().remove();
+  //  sheet.getFilter().remove();
   sheet.setName("Log");
   SpreadsheetApp.flush();
   // Creating the other sheets and naming them  
@@ -121,16 +104,16 @@ function saveData(groupemail1, teacheremail1, changePass1) {
   PropertiesService.getUserProperties().setProperty("teacherEmailProp", teacheremail1);
   PropertiesService.getUserProperties().setProperty("changePassProp", changePass1);
   var result = [groupemail1, teacheremail1, changePass1, domain]
-//  Logger.log([result]);
+  //  Logger.log([result]);
   return [result];
 }
 
 function printUsersFromGroup() {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
-//  Logger.log(domain);
+  //  Logger.log(domain);
 
   var groupKey = PropertiesService.getUserProperties().getProperty("groupEmailProp");
-//  Logger.log(groupKey);
+  //  Logger.log(groupKey);
 
   // Get the current spreadsheet
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -322,9 +305,9 @@ function setPasswords() {
   var logsheet = ss.getSheetByName('Log')
   // Grab true/false for chpass from properties
   var getchangePassProp = PropertiesService.getUserProperties().getProperty("changePassProp");
-//  Logger.log(getchangePassProp);
+  //  Logger.log(getchangePassProp);
   var chpass = getchangePassProp
-//  Logger.log(chpass);
+  //  Logger.log(chpass);
   // Get all data from the second row to the last row with data, and the last column with data
   var lastrow = sheet.getLastRow();
   var lastcolumn = sheet.getLastColumn();
@@ -370,7 +353,7 @@ function cleanUp() {
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = ['Log', 'Group','Instructions'];
+  var sheets = ['Log', 'Group', 'Instructions'];
   var numberOfSheets = ss.getSheets().length;
   for (var s = numberOfSheets - 1; s > 0; s--) { // in my case I never delete the first sheet
     SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
@@ -409,7 +392,7 @@ function cleanUpDEV() {
   SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
   SpreadsheetApp.flush();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = ['Log', 'Group','Users'];
+  var sheets = ['Log', 'Group', 'Users'];
   var numberOfSheets = ss.getSheets().length;
   for (var s = numberOfSheets - 1; s > 0; s--) { // in my case I never delete the first sheet
     SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
@@ -422,5 +405,5 @@ function cleanUpDEV() {
 }
 
 /**
-Last edit: 20210706
+Last edit: 20210706-1940
 */
