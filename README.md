@@ -4,7 +4,7 @@ How to set passwords on many users (a class or an entire school year) provided o
 ## NOW AVAILABLE AS AN ADDON!
 [Install SPOGOU from Google Workspace Marketplace](https://workspace.google.com/marketplace/app/spogou/195844102395).
 
-
+<br><br><br>
 [PRIVACY POLICY](https://tools.no-substitute.com/pp)
 
 tl;dr - No data is sent anywhere, except between you and Google.
