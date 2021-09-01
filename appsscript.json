@@ -1,13 +1,22 @@
 {
   "timeZone": "Europe/Stockholm",
   "dependencies": {
-    "enabledAdvancedServices": [{
-      "userSymbol": "AdminDirectory",
-      "serviceId": "admin",
-      "version": "directory_v1"
-    }]
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "AdminDirectory",
+        "serviceId": "admin",
+        "version": "directory_v1"
+      }
+    ]
   },
   "exceptionLogging": "STACKDRIVER",
-  "oauthScopes": ["https://www.googleapis.com/auth/admin.directory.group", "https://www.googleapis.com/auth/admin.directory.user", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/script.container.ui", "https://www.googleapis.com/auth/userinfo.email"],
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/admin.directory.group.member.readonly",
+    "https://www.googleapis.com/auth/admin.directory.user",
+    "https://www.googleapis.com/auth/spreadsheets.currentonly",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile"
+  ],
   "runtimeVersion": "V8"
 }
