@@ -4,6 +4,7 @@ An easy to use addon to set passwords on many users (a class or an entire school
 ## NOW AVAILABLE AS AN ADDON!
 [Install SPOGOU from Google Workspace Marketplace](https://workspace.google.com/marketplace/app/spogou/195844102395).
 
+Do log feature requests here, as an Issue.
 <br><br><br>
 [PRIVACY POLICY](https://tools.no-substitute.com/pp)
 
