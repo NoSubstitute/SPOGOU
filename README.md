@@ -1,7 +1,7 @@
 # SPOGOU - Set Passwords On a Group Of Users
 An easy to use addon to set passwords on many users (a class or an entire school year) provided only an address to a Google Workspace group, and share the results back to the teacher who asked for it.
 
-## NOW AVAILABLE AS AN ADDON!
+## AVAILABLE AS AN ADDON! (Over 2000 downloads!)
 [Install SPOGOU from Google Workspace Marketplace](https://workspace.google.com/marketplace/app/spogou/195844102395).
 
 Do log feature requests here, as an Issue.
