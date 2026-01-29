@@ -63,6 +63,7 @@ function closeSidebarFinished() {
 }
 
 function prepareSheets() {
+  cleanUpDEV();
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   //  Logger.log(domain);
   // Naming the spreadsheet
@@ -385,22 +386,25 @@ function setPassShare() {
   openSidebarFinished();
 }
 
-// So I don't have to do the cleanup manually, nor revert to earlier version; keeping Instructions instead of Users
+// So I don't have to do the cleanup manually, nor revert to earlier version
 function cleanUpDEV() {
-  var spreadsheet = SpreadsheetApp.getActive();
-  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Instructions'), true);
-  SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
-  SpreadsheetApp.flush();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = ['Log', 'Group', 'Users'];
-  var numberOfSheets = ss.getSheets().length;
-  for (var s = numberOfSheets - 1; s > 0; s--) { // in my case I never delete the first sheet
-    SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
-    var shName = SpreadsheetApp.getActiveSheet().getName();
-    if (sheets.indexOf(shName) > -1) {
-      var delSheet = ss.deleteActiveSheet();
-      Utilities.sleep(500);
+  var sheetsToDelete = ['Group', 'Users'];
+  
+  // Delete the specific sheets if they exist
+  sheetsToDelete.forEach(function(name) {
+    var sheet = ss.getSheetByName(name);
+    if (sheet) {
+      ss.deleteSheet(sheet);
     }
+  });
+
+  // Clear the Log sheet if it exists, otherwise use the first sheet
+  var logSheet = ss.getSheetByName('Log') || ss.getSheets()[0];
+  if (logSheet) {
+    logSheet.clear();
+    logSheet.setName('Log');
+    ss.setActiveSheet(logSheet);
   }
 }
 
