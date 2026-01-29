@@ -4,7 +4,7 @@
 - [x] Task: Review `appsscript.json` for excessive OAuth scopes. 9fd4e88
     - [ ] Verify each scope against actual code usage.
     - [ ] Remove unused scopes.
-- [ ] Task: Analyze `Sidebar*.html` files for XSS vulnerabilities.
+- [x] Task: Analyze `Sidebar*.html` files for XSS vulnerabilities. ab3b245
     - [ ] Ensure all user inputs are sanitized.
     - [ ] Verify secure communication between client-side HTML and server-side `.gs`.
 - [ ] Task: Review `spogou.gs` for data handling.
