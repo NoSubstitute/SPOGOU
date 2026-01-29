@@ -1,7 +1,7 @@
 # Implementation Plan - Audit & Documentation
 
 ## Phase 1: Security Review
-- [ ] Task: Review `appsscript.json` for excessive OAuth scopes.
+- [x] Task: Review `appsscript.json` for excessive OAuth scopes. 9fd4e88
     - [ ] Verify each scope against actual code usage.
     - [ ] Remove unused scopes.
 - [ ] Task: Analyze `Sidebar*.html` files for XSS vulnerabilities.
