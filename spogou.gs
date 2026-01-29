@@ -1,18 +1,38 @@
+/**
+ * Triggered when the add-on is installed.
+ * Calls onOpen to initialize the menu.
+ * 
+ * @param {Object} e - The event object.
+ */
 function onInstall(e) {
   onOpen(e);
 }
 
+/**
+ * Triggered when the spreadsheet is opened.
+ * Creates the add-on menu.
+ * 
+ * @param {Object} e - The event object.
+ */
 function onOpen(e) {
   SpreadsheetApp.getUi().createAddonMenu()
     .addItem('Start', 'startPreparing')
     .addToUi()
 }
 
+/**
+ * Wrapper function to start the preparation process.
+ * Initializes the sheets and opens the first sidebar.
+ */
 function startPreparing() {
   prepareSheets();
   openSidebarPrepSheets();
 }
 
+/**
+ * Opens the sidebar for preparing sheets.
+ * Passes the user's domain to the client-side logic (unused in template but stored in properties).
+ */
 function openSidebarPrepSheets() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarPrepSheets').setTitle('SPOGOU preparing sheets').setWidth(370);
   var userProperties = PropertiesService.getUserProperties();
@@ -26,6 +46,10 @@ function openSidebarPrepSheets() {
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
+/**
+ * Opens the sidebar for preparing passwords.
+ * Also triggers the list and format process in the background.
+ */
 function openSidebarPrepPasswords() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarPrepPasswords').setTitle('SPOGOU preparing passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
@@ -33,17 +57,27 @@ function openSidebarPrepPasswords() {
   SpreadsheetApp.flush();
 }
 
+/**
+ * Opens the sidebar indicating passwords have been prepared.
+ */
 function openSidebarPasswordsPreped() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarPasswordsPreped').setTitle('SPOGOU finished preparing passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
+/**
+ * Opens the sidebar for setting passwords.
+ * Triggers the password setting and sharing process.
+ */
 function openSidebarSetPasswords() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarSetPasswords').setTitle('SPOGOU setting passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
   setPassShare();
 }
 
+/**
+ * Opens the final sidebar indicating the process is finished.
+ */
 function openSidebarFinished() {
   var p = PropertiesService.getScriptProperties();
   p.setProperty("sidebarFinishedProp", "open");
@@ -51,6 +85,9 @@ function openSidebarFinished() {
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
+/**
+ * Closes the finished sidebar and triggers final cleanup.
+ */
 function closeSidebarFinished() {
   var p = PropertiesService.getScriptProperties();
   if (p.getProperty("sidebarFinishedProp") == "open") {
@@ -62,14 +99,38 @@ function closeSidebarFinished() {
   }
 }
 
+/**
+ * Prepares the spreadsheet by creating 'Log', 'Group', and 'Users' sheets.
+ * Removes existing 'Group' and 'Users' sheets to prevent conflicts.
+ * Moves sheets to the beginning of the spreadsheet.
+ */
 function prepareSheets() {
-  cleanUpDEV();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetsToDelete = ['Group', 'Users'];
+  sheetsToDelete.forEach(function(name) {
+    var sheet = ss.getSheetByName(name);
+    if (sheet) {
+      ss.deleteSheet(sheet);
+    }
+  });
+  SpreadsheetApp.flush();
+
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   //  Logger.log(domain);
   // Naming the spreadsheet
   var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var spreadsheet = activeSpreadsheet.setName("SPOGOU");
-  var sheet = SpreadsheetApp.getActiveSheet();
+  
+  // Get the Log sheet (guaranteed by cleanUpDEV)
+  var sheet = activeSpreadsheet.getSheetByName("Log");
+  if (!sheet) {
+    // Fallback if cleanUpDEV didn't create it for some reason
+    sheet = activeSpreadsheet.insertSheet("Log");
+  } else {
+    activeSpreadsheet.setActiveSheet(sheet);
+  }
+  activeSpreadsheet.moveActiveSheet(1);
+  
   // Clearing and naming the first sheet, so we can return to it later
   sheet.clear();
   sheet.clearConditionalFormatRules();
@@ -77,12 +138,13 @@ function prepareSheets() {
   sheet.setFrozenColumns(0);
   sheet.setFrozenRows(0);
   //  sheet.getFilter().remove();
-  sheet.setName("Log");
+  // sheet.setName("Log"); // Removed redundant setName
   SpreadsheetApp.flush();
   // Creating the other sheets and naming them  
   var activeSpreadsheet1 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet1 = activeSpreadsheet1.insertSheet();
   newSheet1.setName("Group");
+  activeSpreadsheet1.moveActiveSheet(2);
   var header1 = ['Group Name', 'User Id', 'User role', 'User Status'];
   newSheet1.appendRow(header1).setFrozenRows(1);
   SpreadsheetApp.flush();
@@ -90,6 +152,7 @@ function prepareSheets() {
   var activeSpreadsheet2 = SpreadsheetApp.getActiveSpreadsheet();
   var newSheet2 = activeSpreadsheet2.insertSheet();
   newSheet2.setName("Users");
+  activeSpreadsheet2.moveActiveSheet(3);
   var header2 = ['primaryEmail', 'FirstName', 'LastName'];
   newSheet2.appendRow(header2).setFrozenRows(1);
   SpreadsheetApp.flush();
@@ -99,6 +162,14 @@ function prepareSheets() {
   SpreadsheetApp.setActiveSheet(spreadsheet.getSheetByName("Log"));
 }
 
+/**
+ * Saves user input data (group email, teacher email, change password setting) to UserProperties.
+ * 
+ * @param {string} groupemail1 - The group email address.
+ * @param {string} teacheremail1 - The teacher's email address.
+ * @param {string} changePass1 - Whether to force password change on next login.
+ * @returns {Array} An array containing the input data and domain.
+ */
 function saveData(groupemail1, teacheremail1, changePass1) {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   PropertiesService.getUserProperties().setProperty("groupEmailProp", groupemail1);
@@ -109,6 +180,11 @@ function saveData(groupemail1, teacheremail1, changePass1) {
   return [result];
 }
 
+/**
+ * Fetches users from the specified Google Workspace group and writes them to the 'Group' sheet.
+ * Handles pagination for large groups.
+ * Logs errors if the group is not found.
+ */
 function printUsersFromGroup() {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   //  Logger.log(domain);
@@ -126,23 +202,32 @@ function printUsersFromGroup() {
   var onSheet = SpreadsheetApp.getActiveSpreadsheet();
   var rows = [];
   var pageToken, page;
-  do {
-    page = AdminDirectory.Members.list(groupKey,
-      {
-        domainName: domain,
-        maxResults: 500,
-        pageToken: pageToken,
-      });
-    var members = page.members
-    if (members) {
-      for (var i = 0; i < members.length; i++) {
-        var member = members[i];
-        var row = [groupKey, member.email, member.role, member.status];
-        rows.push(row);
+  try {
+    do {
+      page = AdminDirectory.Members.list(groupKey,
+        {
+          domainName: domain,
+          maxResults: 500,
+          pageToken: pageToken,
+        });
+      var members = page.members
+      if (members) {
+        for (var i = 0; i < members.length; i++) {
+          var member = members[i];
+          var row = [groupKey, member.email, member.role, member.status];
+          rows.push(row);
+        }
       }
+      pageToken = page.nextPageToken;
+    } while (pageToken);
+  } catch (err) {
+    var logsheet = onSheet.getSheetByName("Log");
+    if (logsheet) {
+      logsheet.appendRow([new Date(), "System", "Error fetching group members: " + err.message]);
     }
-    pageToken = page.nextPageToken;
-  } while (pageToken);
+    SpreadsheetApp.getUi().alert("Error: Could not find group '" + groupKey + "'.\nDetails: " + err.message);
+    return;
+  }
   if (rows.length > 1) {
     // Print group members on second sheet called Group
     var sheetData = onSheet.getSheetByName("Group")
@@ -155,6 +240,9 @@ function printUsersFromGroup() {
   spreadsheet.getRange('A2').activate();
 }
 
+/**
+ * Retrieves detailed user information (names) for the group members and writes to 'Users' sheet.
+ */
 function getUserNames() {
   // Get the current spreadsheet
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -191,6 +279,10 @@ function getUserNames() {
   spreadsheet.getRange('A2').activate();
 }
 
+/**
+ * Formats the 'Users' sheet and generates temporary passwords for students.
+ * Performs clean up of password characters and columns.
+ */
 function FormatAndCreateListOfStudentPasswords() {
   var spreadsheet = SpreadsheetApp.getActive();
   spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
@@ -235,7 +327,7 @@ function FormatAndCreateListOfStudentPasswords() {
   // Removing characters that can't be used in passwords
   // Grab data from column E and put in column B
   sheet.getRange('B2').activate();
-  sheet.getCurrentCell().setFormula('=SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(E2;"å";"a");"ä";"a");"ö";"o");"Å";"A");"Ä";"A");"Ö";"O");"é";"e");"Ü";"u");"ü";"u");"";"-");"ë";"e");"è";"e");"Ø";"O");"ø";"o");"õ";"o");"ó";"o");"€";"€");"€";"€")');
+  sheet.getCurrentCell().setFormula('=SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(E2;"å";"a");"ä";"a");"ö";"o");"Å";"A");"Ä";"A");"Ö";"O");"é";"e");"Ü";"u");"ü";"u");"-";"-");"ë";"e");"è";"e");"Ø";"O");"ø";"o");"õ";"o");"ó";"o");"€";"€");"€";"€")');
   sheet.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
 
   // Another delay needed here
@@ -295,6 +387,10 @@ function FormatAndCreateListOfStudentPasswords() {
   SpreadsheetApp.flush();
 }
 
+/**
+ * Sets the new passwords for the users in the 'Users' sheet using the Admin SDK.
+ * Logs success or failure to the 'Log' sheet.
+ */
 function setPasswords() {
   // Get User/Operator Info
   var userEmail = Session.getActiveUser().getEmail()
@@ -331,6 +427,10 @@ function setPasswords() {
   SpreadsheetApp.flush();
 }
 
+/**
+ * Shares the spreadsheet with the specified teacher (requester).
+ * Logs success or failure to the 'Log' sheet.
+ */
 function shareSheet() {
   // Get User/Operator Info
   var userEmail = Session.getActiveUser().getEmail()
@@ -350,23 +450,39 @@ function shareSheet() {
   }
 }
 
+/**
+ * Performs final cleanup after the process is finished.
+ * Deletes 'Group', 'Log', and 'Instructions' sheets.
+ * Keeps 'Users' sheet.
+ * Closes sidebars.
+ */
 function cleanUp() {
-  var spreadsheet = SpreadsheetApp.getActive();
-  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = ['Log', 'Group', 'Instructions'];
-  var numberOfSheets = ss.getSheets().length;
-  for (var s = numberOfSheets - 1; s > 0; s--) { // in my case I never delete the first sheet
-    SpreadsheetApp.setActiveSheet(ss.getSheets()[s]);
-    var shName = SpreadsheetApp.getActiveSheet().getName();
-    if (sheets.indexOf(shName) > -1) {
-      var delSheet = ss.deleteActiveSheet();
-      Utilities.sleep(500);
+  var sheetsToDelete = ['Group', 'Log', 'Instructions'];
+  
+  // Delete the specific sheets if they exist
+  sheetsToDelete.forEach(function(name) {
+    var sheet = ss.getSheetByName(name);
+    if (sheet) {
+      ss.deleteSheet(sheet);
     }
+  });
+  
+  // Ensure we end up on the Users sheet if it exists
+  var usersSheet = ss.getSheetByName('Users');
+  if (usersSheet) {
+    ss.setActiveSheet(usersSheet);
   }
+
+  // Close any open sidebars
+  var html = HtmlService.createHtmlOutput("<script>google.script.host.close();</script>");
+  SpreadsheetApp.getUi().showSidebar(html);
 }
 
-// Here I combine several functions into one, so the process is shorter for the user
+// Helper functions combined...
+/**
+ * Wrapper to list users, get names, create passwords, and open next sidebar.
+ */
 function listUsersFormatPassword() {
   printUsersFromGroup();
   SpreadsheetApp.flush();
@@ -377,7 +493,9 @@ function listUsersFormatPassword() {
   openSidebarPasswordsPreped();
 }
 
-// Once again I combine several functions into one, so the process is shorter for the user
+/**
+ * Wrapper to set passwords, share sheet, and finish.
+ */
 function setPassShare() {
   setPasswords();
   SpreadsheetApp.flush();
@@ -386,26 +504,36 @@ function setPassShare() {
   openSidebarFinished();
 }
 
-// So I don't have to do the cleanup manually, nor revert to earlier version
+/**
+ * Developer tool to completely reset the spreadsheet for testing.
+ * Deletes all sheets and creates a blank 'Sheet1'.
+ * Closes sidebars.
+ */
 function cleanUpDEV() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheetsToDelete = ['Group', 'Users'];
+  var sheets = ss.getSheets();
   
-  // Delete the specific sheets if they exist
-  sheetsToDelete.forEach(function(name) {
-    var sheet = ss.getSheetByName(name);
-    if (sheet) {
-      ss.deleteSheet(sheet);
+  // Ensure there is at least one sheet to keep (create a temp one if needed)
+  if (sheets.length === 1 && (sheets[0].getName() === 'Sheet1')) {
+    // Already clean
+    sheets[0].clear();
+  } else {
+    var blankSheet = ss.getSheetByName('Sheet1') || ss.insertSheet('Sheet1');
+    ss.setActiveSheet(blankSheet);
+    blankSheet.clear();
+    
+    // Delete all other sheets
+    var allSheets = ss.getSheets();
+    for (var i = 0; i < allSheets.length; i++) {
+      if (allSheets[i].getName() !== 'Sheet1') {
+        ss.deleteSheet(allSheets[i]);
+      }
     }
-  });
-
-  // Clear the Log sheet if it exists, otherwise use the first sheet
-  var logSheet = ss.getSheetByName('Log') || ss.getSheets()[0];
-  if (logSheet) {
-    logSheet.clear();
-    logSheet.setName('Log');
-    ss.setActiveSheet(logSheet);
   }
+  
+  // Close sidebars
+  var html = HtmlService.createHtmlOutput("<script>google.script.host.close();</script>");
+  SpreadsheetApp.getUi().showSidebar(html);
 }
 
 /**
