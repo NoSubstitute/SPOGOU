@@ -15,3 +15,4 @@
 
 ## Tooling & Workflow
 - **clasp (Command Line Apps Script Projects):** Used for local development, version control (Git integration), and pushing code to the Apps Script environment.
+- **Testing:** `mocha` and `chai` for local regression testing (manifest, security, logic).
