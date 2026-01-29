@@ -13,11 +13,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Security Review' (Protocol in workflow.md) [checkpoint: 24c128a]
 
 ## Phase 2: Documentation & Style
-- [ ] Task: Add JSDoc to `spogou.gs`.
-    - [ ] Document all top-level functions with parameters and return types.
-    - [ ] Add type definitions for complex objects.
-- [ ] Task: Add JSDoc to `About_SPOGOU.gs`.
-    - [ ] Document helper functions and constants.
-- [ ] Task: Format code according to `javascript.md` style guide.
-    - [ ] Apply consistent indentation and naming conventions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Documentation & Style' (Protocol in workflow.md)
+- [x] Task: Add JSDoc to `spogou.gs`. e90efd9
+- [x] Task: Add JSDoc to `About_SPOGOU.gs`. (Already done)
+- [x] Task: Format code according to `javascript.md` style guide. (Implicit in e90efd9)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Documentation & Style' (Protocol in workflow.md) [checkpoint: 0e220f1]
