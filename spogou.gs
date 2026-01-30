@@ -119,7 +119,7 @@ function prepareSheets() {
   //  Logger.log(domain);
   // Naming the spreadsheet
   var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var spreadsheet = activeSpreadsheet.setName("SPOGOU");
+  var spreadsheet = activeSpreadsheet.setName("DEV - SPOGOU - DEV");
   
   // Get the Log sheet (guaranteed by cleanUpDEV)
   var sheet = activeSpreadsheet.getSheetByName("Log");
