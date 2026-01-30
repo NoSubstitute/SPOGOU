@@ -15,6 +15,7 @@
  * 2026-01-30:
  * - Feature: Added 'admin.directory.group.readonly' scope for group autocomplete.
  * - Feature: Implemented server-side group search function.
+ * - Feature: Implemented server-side teacher search function.
  * - UI: Added autocomplete datalist and validation icon to SidebarPrepSheets.html.
  * - UI: Implemented client-side autocomplete logic with debouncing and validation status.
  * - UI: Optimized validation UI responsiveness by using local cache and adjusted icon positioning.

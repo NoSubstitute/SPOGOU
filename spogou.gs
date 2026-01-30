@@ -575,7 +575,48 @@ function searchGroups(query) {
       return [];
     }
   } catch (err) {
-    console.error('Error searching groups: ' + err.message);
-    return [];
-  }
-}
+        console.error('Error searching groups: ' + err.message);
+        return [];
+      }
+    }
+    
+    /**
+     * Searches for users matching the query using the Admin Directory API.
+     * 
+     * @param {string} query - The search query (part of the user email).
+     * @returns {Array} An array of user objects {email, name}.
+     */
+    function searchUsers(query) {
+      if (!query || query.length < 3) {
+        return [];
+      }
+      
+      try {
+        var userEmail = Session.getActiveUser().getEmail();
+        var domain = userEmail.split('@').pop();
+        
+        var args = {
+          domain: domain,
+          query: "email:" + query + "*",
+          maxResults: 10
+        };
+        
+        var page = AdminDirectory.Users.list(args);
+        var users = page.users;
+        
+        if (users) {
+          return users.map(function(user) {
+            return {
+              email: user.primaryEmail,
+              name: user.name.fullName
+            };
+          });
+        } else {
+          return [];
+        }
+      } catch (err) {
+        console.error('Error searching users: ' + err.message);
+        return [];
+      }
+    }
+    
