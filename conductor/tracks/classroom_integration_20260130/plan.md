@@ -9,14 +9,14 @@
     - [x] Implement Feature: Use `Classroom.Courses.list({teacherId: ...})`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Backend'
 
-## Phase 2: Frontend Implementation
+## Phase 2: Frontend Implementation [checkpoint: pending]
 - [x] Task: Update `SidebarPrepSheets.html` UI. c623a01
     - [x] Add "Select Classroom here" input field and datalist after the Group field.
     - [x] Add `id="classroom"` and `list="classroom-list"`.
-- [ ] Task: Implement client-side logic.
-    - [ ] Trigger `google.script.run.getClassrooms` when `teacheremail` validation succeeds (or on blur).
-    - [ ] Populate `classroom-list` with the results.
-    - [ ] Ensure typing filters the list (native datalist behavior).
+- [x] Task: Implement client-side logic. 5458b6a
+    - [x] Trigger `google.script.run.getClassrooms` when `teacheremail` validation succeeds (or on blur).
+    - [x] Populate `classroom-list` with the results.
+    - [x] Ensure typing filters the list (native datalist behavior).
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Implementation'
 
 ## Phase 3: Core Logic Integration (TBD)
