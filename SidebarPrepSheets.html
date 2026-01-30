@@ -72,18 +72,18 @@
       var buttonNext = document.getElementById("btnPrepPass");
     
     // Autocomplete logic
-    var searchTimeout;
-    var cachedGroups = [];
-    var cachedTeachers = [];
+    var searchCache = {}; // Map of "serverFunc_query" -> results
+    var cachedGroups = []; // Currently displayed results
+    var cachedTeachers = []; // Currently displayed results
     
-    function updateValidationUI(query, iconId, cache) {
+    function updateValidationUI(query, iconId, currentResults) {
       var icon = document.getElementById(iconId);
       if (query.length < 3) {
         icon.style.display = 'none';
         return;
       }
       
-      var exactMatch = cache.some(function(item) {
+      var exactMatch = currentResults.some(function(item) {
         return item.email.toLowerCase() === query.toLowerCase();
       });
       
@@ -97,40 +97,56 @@
       }
     }
 
-    function setupAutocomplete(input, listId, iconId, serverFunc, cacheRef) {
+    function setupAutocomplete(input, listId, iconId, serverFunc, currentResultsRef) {
       var timeout;
       input.addEventListener('input', function() {
         var query = input.value;
+        var cacheKey = serverFunc + "_" + query;
         
-        // Immediate UI update from cache
-        updateValidationUI(query, iconId, window[cacheRef]);
+        // Immediate UI update from currently displayed results
+        updateValidationUI(query, iconId, window[currentResultsRef]);
         
         // Clear previous timeout
         clearTimeout(timeout);
         
         if (query.length < 3) {
           document.getElementById(listId).innerHTML = '';
-          window[cacheRef] = [];
+          window[currentResultsRef] = [];
+          updateValidationUI(query, iconId, []); // Force hide icon
+          return;
+        }
+        
+        // Check Cache
+        if (searchCache[cacheKey]) {
+          window[currentResultsRef] = searchCache[cacheKey];
+          renderResults(listId, searchCache[cacheKey]);
+          updateValidationUI(query, iconId, searchCache[cacheKey]);
           return;
         }
         
         timeout = setTimeout(function() {
           google.script.run
             .withSuccessHandler(function(results) {
-              window[cacheRef] = results;
-              var datalist = document.getElementById(listId);
-              datalist.innerHTML = '';
+              // Store in Cache
+              searchCache[cacheKey] = results;
+              window[currentResultsRef] = results;
               
-              results.forEach(function(item) {
-                var option = document.createElement('option');
-                option.value = item.email;
-                datalist.appendChild(option);
-              });
+              renderResults(listId, results);
               
               // Re-validate after server response
-              updateValidationUI(input.value, iconId, window[cacheRef]);
+              updateValidationUI(input.value, iconId, results);
             })[serverFunc](query);
-        }, 500);
+        }, 300);
+      });
+    }
+    
+    function renderResults(listId, results) {
+      var datalist = document.getElementById(listId);
+      datalist.innerHTML = '';
+      results.forEach(function(item) {
+        var option = document.createElement('option');
+        option.value = item.email;
+        datalist.appendChild(option);
       });
     }
 

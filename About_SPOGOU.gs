@@ -20,6 +20,7 @@
  * - UI: Implemented client-side autocomplete logic with debouncing and validation status.
  * - UI: Optimized validation UI responsiveness by using local cache and adjusted icon positioning.
  * - UI: Swapped teacher and group email fields; updated button labels to 'SAVE' and 'NEXT'.
+ * - UI: Optimized performance with client-side caching and reduced debounce to 300ms.
  * - Dev: Changed spreadsheet name to 'DEV - SPOGOU - DEV' for development identification.
  * 
  * 2026-01-29: 
