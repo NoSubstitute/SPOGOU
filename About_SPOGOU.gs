@@ -19,6 +19,7 @@
  * - UI: Added autocomplete datalist and validation icon to SidebarPrepSheets.html for both group and teacher emails.
  * - UI: Implemented client-side autocomplete logic with debouncing and validation status.
  * - UI: Optimized validation UI responsiveness by using local cache and adjusted icon positioning.
+ * - UI: Swapped teacher and group email fields; updated button labels to 'SAVE' and 'NEXT'.
  * - Dev: Changed spreadsheet name to 'DEV - SPOGOU - DEV' for development identification.
  * 
  * 2026-01-29: 
