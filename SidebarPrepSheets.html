@@ -37,7 +37,11 @@
 					<i id="group-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
 				</div>
 				<datalist id="groups-list"></datalist>
-				<input placeholder="Enter teacher email here" type="text" id="teacheremail" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()">
+				<div style="display: flex; align-items: center;">
+					<input placeholder="Enter teacher email here" type="text" id="teacheremail" list="teachers-list" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;">
+					<i id="teacher-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
+				</div>
+				<datalist id="teachers-list"></datalist>
       </div>
 				<div class="input-field col s10">
 					<select id="changePass">
@@ -70,16 +74,17 @@
     // Autocomplete logic
     var searchTimeout;
     var cachedGroups = [];
+    var cachedTeachers = [];
     
-    function updateValidationUI(query) {
-      var icon = document.getElementById('group-validation-icon');
+    function updateValidationUI(query, iconId, cache) {
+      var icon = document.getElementById(iconId);
       if (query.length < 3) {
         icon.style.display = 'none';
         return;
       }
       
-      var exactMatch = cachedGroups.some(function(g) {
-        return g.email.toLowerCase() === query.toLowerCase();
+      var exactMatch = cache.some(function(item) {
+        return item.email.toLowerCase() === query.toLowerCase();
       });
       
       icon.style.display = 'inline-block';
@@ -92,40 +97,45 @@
       }
     }
 
-    field1.addEventListener('input', function() {
-      var query = field1.value;
-      
-      // Immediate UI update from cache
-      updateValidationUI(query);
-      
-      // Clear previous timeout
-      clearTimeout(searchTimeout);
-      
-      if (query.length < 3) {
-        document.getElementById('groups-list').innerHTML = '';
-        cachedGroups = [];
-        return;
-      }
-      
-      searchTimeout = setTimeout(function() {
-        google.script.run
-          .withSuccessHandler(function(groups) {
-            cachedGroups = groups;
-            var datalist = document.getElementById('groups-list');
-            datalist.innerHTML = '';
-            
-            groups.forEach(function(group) {
-              var option = document.createElement('option');
-              option.value = group.email;
-              datalist.appendChild(option);
-            });
-            
-            // Re-validate after server response
-            updateValidationUI(field1.value);
-          })
-          .searchGroups(query);
-      }, 500);
-    });
+    function setupAutocomplete(input, listId, iconId, serverFunc, cacheRef) {
+      var timeout;
+      input.addEventListener('input', function() {
+        var query = input.value;
+        
+        // Immediate UI update from cache
+        updateValidationUI(query, iconId, window[cacheRef]);
+        
+        // Clear previous timeout
+        clearTimeout(timeout);
+        
+        if (query.length < 3) {
+          document.getElementById(listId).innerHTML = '';
+          window[cacheRef] = [];
+          return;
+        }
+        
+        timeout = setTimeout(function() {
+          google.script.run
+            .withSuccessHandler(function(results) {
+              window[cacheRef] = results;
+              var datalist = document.getElementById(listId);
+              datalist.innerHTML = '';
+              
+              results.forEach(function(item) {
+                var option = document.createElement('option');
+                option.value = item.email;
+                datalist.appendChild(option);
+              });
+              
+              // Re-validate after server response
+              updateValidationUI(input.value, iconId, window[cacheRef]);
+            })[serverFunc](query);
+        }, 500);
+      });
+    }
+
+    setupAutocomplete(field1, 'groups-list', 'group-validation-icon', 'searchGroups', 'cachedGroups');
+    setupAutocomplete(field2, 'teachers-list', 'teacher-validation-icon', 'searchUsers', 'cachedTeachers');
 
     function validate(){
       if(!isEmpty(field1)&&!isEmpty(field2)){
