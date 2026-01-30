@@ -66,6 +66,52 @@
       var field2 = document.getElementById("teacheremail");
       var buttonSave = document.getElementById("btnSaveData");
       var buttonNext = document.getElementById("btnPrepPass");
+    
+    // Autocomplete logic
+    var searchTimeout;
+    field1.addEventListener('input', function() {
+      var query = field1.value;
+      var icon = document.getElementById('group-validation-icon');
+      
+      // Clear previous timeout
+      clearTimeout(searchTimeout);
+      
+      if (query.length < 3) {
+        icon.style.display = 'none';
+        document.getElementById('groups-list').innerHTML = '';
+        return;
+      }
+      
+      searchTimeout = setTimeout(function() {
+        google.script.run
+          .withSuccessHandler(function(groups) {
+            var datalist = document.getElementById('groups-list');
+            datalist.innerHTML = '';
+            var exactMatch = false;
+            
+            groups.forEach(function(group) {
+              var option = document.createElement('option');
+              option.value = group.email;
+              datalist.appendChild(option);
+              if (group.email.toLowerCase() === query.toLowerCase()) {
+                exactMatch = true;
+              }
+            });
+            
+            // Update validation icon
+            icon.style.display = 'inline-block';
+            if (exactMatch) {
+              icon.innerText = 'check_circle';
+              icon.style.color = 'green';
+            } else {
+              icon.innerText = 'error';
+              icon.style.color = 'orange';
+            }
+          })
+          .searchGroups(query);
+      }, 500);
+    });
+
     function validate(){
       if(!isEmpty(field1)&&!isEmpty(field2)){
         buttonSave.disabled=false;
