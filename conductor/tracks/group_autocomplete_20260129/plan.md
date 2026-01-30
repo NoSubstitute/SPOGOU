@@ -8,7 +8,7 @@
     - [x] Implement Feature: Use `AdminDirectory.Groups.list` with a query filter.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Backend' (Protocol in workflow.md)
 
-## Phase 2: Frontend Implementation
+## Phase 2: Frontend Implementation [checkpoint: 632f719]
 - [x] Task: Update `SidebarPrepSheets.html` UI. 2ca58bd
     - [x] Add a `<datalist>` or result container for autocomplete.
     - [x] Add a status indicator icon/element next to the input.
