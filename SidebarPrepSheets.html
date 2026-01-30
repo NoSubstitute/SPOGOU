@@ -32,9 +32,9 @@
 		</div>
 		<div class="row">
 			<div class="input-field col s10">
-				<div style="position: relative;">
-					<input placeholder="Enter group email here" type="text" id="groupemail" list="groups-list" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()">
-					<i id="group-validation-icon" class="material-icons" style="position: absolute; right: 10px; top: 25px; display: none;"></i>
+				<div style="display: flex; align-items: center;">
+					<input placeholder="Enter group email here" type="text" id="groupemail" list="groups-list" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;">
+					<i id="group-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
 				</div>
 				<datalist id="groups-list"></datalist>
 				<input placeholder="Enter teacher email here" type="text" id="teacheremail" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()">
@@ -69,44 +69,59 @@
     
     // Autocomplete logic
     var searchTimeout;
+    var cachedGroups = [];
+    
+    function updateValidationUI(query) {
+      var icon = document.getElementById('group-validation-icon');
+      if (query.length < 3) {
+        icon.style.display = 'none';
+        return;
+      }
+      
+      var exactMatch = cachedGroups.some(function(g) {
+        return g.email.toLowerCase() === query.toLowerCase();
+      });
+      
+      icon.style.display = 'inline-block';
+      if (exactMatch) {
+        icon.innerText = 'check_circle';
+        icon.style.color = 'green';
+      } else {
+        icon.innerText = 'error';
+        icon.style.color = 'orange';
+      }
+    }
+
     field1.addEventListener('input', function() {
       var query = field1.value;
-      var icon = document.getElementById('group-validation-icon');
+      
+      // Immediate UI update from cache
+      updateValidationUI(query);
       
       // Clear previous timeout
       clearTimeout(searchTimeout);
       
       if (query.length < 3) {
-        icon.style.display = 'none';
         document.getElementById('groups-list').innerHTML = '';
+        cachedGroups = [];
         return;
       }
       
       searchTimeout = setTimeout(function() {
         google.script.run
           .withSuccessHandler(function(groups) {
+            cachedGroups = groups;
             var datalist = document.getElementById('groups-list');
             datalist.innerHTML = '';
-            var exactMatch = false;
             
             groups.forEach(function(group) {
               var option = document.createElement('option');
               option.value = group.email;
               datalist.appendChild(option);
-              if (group.email.toLowerCase() === query.toLowerCase()) {
-                exactMatch = true;
-              }
             });
             
-            // Update validation icon
-            icon.style.display = 'inline-block';
-            if (exactMatch) {
-              icon.innerText = 'check_circle';
-              icon.style.color = 'green';
-            } else {
-              icon.innerText = 'error';
-              icon.style.color = 'orange';
-            }
+            // Re-validate after server response
+            updateValidationUI(field1.value);
           })
           .searchGroups(query);
       }, 500);
