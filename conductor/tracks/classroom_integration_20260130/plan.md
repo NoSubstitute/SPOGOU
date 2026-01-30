@@ -1,6 +1,6 @@
 # Implementation Plan - Google Classroom Integration
 
-## Phase 1: Infrastructure & Backend
+## Phase 1: Infrastructure & Backend [checkpoint: dbe4d49]
 - [x] Task: Update `appsscript.json` configuration. 9673344
     - [x] Enable `Classroom` advanced service.
     - [x] Add `https://www.googleapis.com/auth/classroom.courses.readonly` and `https://www.googleapis.com/auth/classroom.rosters.readonly` scopes.
