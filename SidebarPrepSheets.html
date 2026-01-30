@@ -157,6 +157,54 @@
 
     setupAutocomplete(field1, 'groups-list', 'group-validation-icon', 'searchGroups', 'cachedGroups');
     setupAutocomplete(field2, 'teachers-list', 'teacher-validation-icon', 'searchUsers', 'cachedTeachers');
+    
+    // Classroom Fetch Logic
+    var cachedClassrooms = [];
+    
+    function fetchClassrooms(teacherEmail) {
+      var classroomInput = document.getElementById('classroom');
+      
+      // Clear previous
+      classroomInput.value = '';
+      classroomInput.disabled = true;
+      document.getElementById('classroom-list').innerHTML = '';
+      cachedClassrooms = [];
+      
+      if (!teacherEmail || teacherEmail.length < 5) return; // Basic validation
+      
+      google.script.run
+        .withSuccessHandler(function(classrooms) {
+           cachedClassrooms = classrooms;
+           var datalist = document.getElementById('classroom-list');
+           datalist.innerHTML = '';
+           
+           classrooms.forEach(function(c) {
+             var option = document.createElement('option');
+             option.value = c.name; // Display name
+             // We might need to store ID separately if we want to send it back. 
+             // Datalist options usually just show value. 
+             // For now, let's just use name for selection, assuming unique enough or user verify.
+             // Ideally we'd map name -> id on save.
+             datalist.appendChild(option);
+           });
+           
+           classroomInput.disabled = false;
+           classroomInput.placeholder = "Select Classroom (" + classrooms.length + " found)";
+        })
+        .getClassrooms(teacherEmail);
+    }
+    
+    // Listen for teacher email selection/validation
+    field2.addEventListener('change', function() {
+       // Only fetch if valid (check green icon or cache)
+       var icon = document.getElementById('teacher-validation-icon');
+       if (icon.style.display !== 'none' && icon.innerText === 'check_circle') {
+         fetchClassrooms(field2.value);
+       } else {
+         document.getElementById('classroom').disabled = true;
+         document.getElementById('classroom').placeholder = "Select Classroom here";
+       }
+    });
 
     function validate(){
       if(!isEmpty(field1)&&!isEmpty(field2)){
