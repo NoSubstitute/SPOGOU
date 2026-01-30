@@ -1,8 +1,8 @@
 # Implementation Plan - Group Autocomplete
 
 ## Phase 1: Infrastructure & Backend
-- [ ] Task: Update OAuth Scopes in `appsscript.json`.
-    - [ ] Add `https://www.googleapis.com/auth/admin.directory.group.readonly`.
+- [x] Task: Update OAuth Scopes in `appsscript.json`. 816b183
+    - [x] Add `https://www.googleapis.com/auth/admin.directory.group.readonly`.
 - [ ] Task: Implement `searchGroups(query)` in `spogou.gs`.
     - [ ] Write Tests: Create `test/search.test.js` to verify searching logic (mocked).
     - [ ] Implement Feature: Use `AdminDirectory.Groups.list` with a query filter.
