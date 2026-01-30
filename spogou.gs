@@ -615,8 +615,44 @@ function searchGroups(query) {
           return [];
         }
       } catch (err) {
-        console.error('Error searching users: ' + err.message);
-        return [];
-      }
-    }
-    
+            console.error('Error searching users: ' + err.message);
+            return [];
+          }
+        }
+        
+        /**
+         * Fetches active classrooms for a specific teacher.
+         * 
+         * @param {string} teacherEmail - The email of the teacher.
+         * @returns {Array} An array of course objects {id, name}.
+         */
+        function getClassrooms(teacherEmail) {
+          if (!teacherEmail) {
+            return [];
+          }
+          
+          try {
+            var args = {
+              teacherId: teacherEmail,
+              courseStates: ['ACTIVE']
+            };
+            
+            var response = Classroom.Courses.list(args);
+            var courses = response.courses;
+            
+            if (courses) {
+              return courses.map(function(course) {
+                return {
+                  id: course.id,
+                  name: course.name
+                };
+              });
+            } else {
+              return [];
+            }
+          } catch (err) {
+            console.error('Error fetching classrooms: ' + err.message);
+            return [];
+          }
+        }
+        
