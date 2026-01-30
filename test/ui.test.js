@@ -26,4 +26,13 @@ describe('SidebarPrepSheets.html UI', function() {
     const indicator = document.getElementById('group-validation-icon');
     expect(indicator).to.exist;
   });
+
+  it('should have a classroom input with a datalist', function() {
+    const input = document.getElementById('classroom');
+    expect(input).to.exist;
+    expect(input.getAttribute('list')).to.equal('classroom-list');
+    
+    const datalist = document.getElementById('classroom-list');
+    expect(datalist).to.exist;
+  });
 });
