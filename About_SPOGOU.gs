@@ -12,11 +12,15 @@
 /**
  * CHANGELOG
  * 
+ * 2026-01-30:
+ * - Feature: Added 'admin.directory.group.readonly' scope for group autocomplete.
+ * 
  * 2026-01-29: 
  * - Refactored cleanUpDEV() for robustness.
  * - Integrated cleanUpDEV() into prepareSheets() to prevent sheet duplication errors.
  * - Security: Upgraded jQuery to 3.7.1 in all sidebars.
  * - Security: Removed unused 'userinfo.profile' scope.
  * - Security: Log err.message instead of full error object.
+ * - Fix: Added error handling for invalid group emails in printUsersFromGroup.
  * 2026-01-16: Reverted 'openid' scope addition (determined unnecessary).
  */
