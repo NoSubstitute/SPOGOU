@@ -19,6 +19,15 @@
     M.updateTextFields();
     })
 	</script>
+	<style>
+		.container {
+			width: 95%;
+			padding: 0;
+		}
+		.input-field {
+			margin-bottom: 10px;
+		}
+	</style>
 	<div class="container">
 		<h6><b>There are only three steps of this process, and you just ran the first one</b></h6>
 		<blockquote>
@@ -31,7 +40,7 @@
 				first login, and then click <i>SAVE</i>, followed by <i>NEXT</i>.</h6>
 		</div>
 		<div class="row">
-			<div class="input-field col s10">
+			<div class="input-field col s12">
 				<div style="display: flex; align-items: center;">
 					<input placeholder="Enter teacher email here" type="text" id="teacheremail" list="teachers-list" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;">
 					<i id="teacher-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
@@ -48,7 +57,7 @@
 				</div>
 				<datalist id="classroom-list"></datalist>
       </div>
-				<div class="input-field col s10">
+				<div class="input-field col s12">
 					<select id="changePass">
         <option value="FALSE">FALSE</option>
         <option value="TRUE">TRUE</option>
