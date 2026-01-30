@@ -12,8 +12,8 @@
 - [x] Task: Update `SidebarPrepSheets.html` UI. 2ca58bd
     - [x] Add a `<datalist>` or result container for autocomplete.
     - [x] Add a status indicator icon/element next to the input.
-- [ ] Task: Implement client-side search logic.
-    - [ ] Add debounce function.
-    - [ ] Handle input events to call `google.script.run.searchGroups`.
-    - [ ] Update UI with results and validation state.
+- [x] Task: Implement client-side search logic. f769350
+    - [x] Add debounce function.
+    - [x] Handle input events to call `google.script.run.searchGroups`.
+    - [x] Update UI with results and validation state.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Implementation' (Protocol in workflow.md)
