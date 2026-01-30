@@ -20,6 +20,10 @@
   "homepage": "https://github.com/NoSubstitute/SPOGOU#readme",
   "devDependencies": {
     "chai": "^6.2.2",
+    "glob": "^13.0.0",
     "mocha": "^11.7.5"
+  },
+  "dependencies": {
+    "jsdom": "^27.4.0"
   }
 }

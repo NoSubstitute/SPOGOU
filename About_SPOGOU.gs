@@ -15,6 +15,7 @@
  * 2026-01-30:
  * - Feature: Added 'admin.directory.group.readonly' scope for group autocomplete.
  * - Feature: Implemented server-side group search function.
+ * - UI: Added autocomplete datalist and validation icon to SidebarPrepSheets.html.
  * 
  * 2026-01-29: 
  * - Refactored cleanUpDEV() for robustness.

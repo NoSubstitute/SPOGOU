@@ -32,7 +32,11 @@
 		</div>
 		<div class="row">
 			<div class="input-field col s10">
-				<input placeholder="Enter group email here" type="text" id="groupemail" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()"><br>
+				<div style="position: relative;">
+					<input placeholder="Enter group email here" type="text" id="groupemail" list="groups-list" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()">
+					<i id="group-validation-icon" class="material-icons" style="position: absolute; right: 10px; top: 25px; display: none;"></i>
+				</div>
+				<datalist id="groups-list"></datalist>
 				<input placeholder="Enter teacher email here" type="text" id="teacheremail" class="card-panel #f5f5f5 grey lighten-4" oninput="validate()">
       </div>
 				<div class="input-field col s10">
