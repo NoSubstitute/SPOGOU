@@ -10,9 +10,9 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Backend'
 
 ## Phase 2: Frontend Implementation
-- [ ] Task: Update `SidebarPrepSheets.html` UI.
-    - [ ] Add "Select Classroom here" input field and datalist after the Group field.
-    - [ ] Add `id="classroom"` and `list="classroom-list"`.
+- [x] Task: Update `SidebarPrepSheets.html` UI. c623a01
+    - [x] Add "Select Classroom here" input field and datalist after the Group field.
+    - [x] Add `id="classroom"` and `list="classroom-list"`.
 - [ ] Task: Implement client-side logic.
     - [ ] Trigger `google.script.run.getClassrooms` when `teacheremail` validation succeeds (or on blur).
     - [ ] Populate `classroom-list` with the results.
