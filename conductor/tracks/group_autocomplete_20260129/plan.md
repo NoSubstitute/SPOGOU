@@ -1,6 +1,6 @@
 # Implementation Plan - Group Autocomplete
 
-## Phase 1: Infrastructure & Backend
+## Phase 1: Infrastructure & Backend [checkpoint: fead14f]
 - [x] Task: Update OAuth Scopes in `appsscript.json`. 816b183
     - [x] Add `https://www.googleapis.com/auth/admin.directory.group.readonly`.
 - [x] Task: Implement `searchGroups(query)` in `spogou.gs`. 0ce75fb
