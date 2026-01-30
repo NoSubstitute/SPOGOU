@@ -15,5 +15,6 @@ SPOGOU (Set Passwords On a Group Of Users) is an easy-to-use Google Workspace ad
 
 ## Key Features
 - **Group Membership Retrieval:** Fetch members from a specified Google Workspace group.
+- **Interactive Group Search:** Live autocomplete search to help users quickly find the correct Google Workspace group.
 - **Automated Password Management:** Generate and apply new passwords to all members of the group.
 - **Transparent Reporting:** Generate a report (e.g., in a spreadsheet) containing the new credentials and share it automatically with the requester.
