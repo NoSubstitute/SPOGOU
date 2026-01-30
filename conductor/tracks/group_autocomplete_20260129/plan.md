@@ -9,9 +9,9 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Backend' (Protocol in workflow.md)
 
 ## Phase 2: Frontend Implementation
-- [ ] Task: Update `SidebarPrepSheets.html` UI.
-    - [ ] Add a `<datalist>` or result container for autocomplete.
-    - [ ] Add a status indicator icon/element next to the input.
+- [x] Task: Update `SidebarPrepSheets.html` UI. 2ca58bd
+    - [x] Add a `<datalist>` or result container for autocomplete.
+    - [x] Add a status indicator icon/element next to the input.
 - [ ] Task: Implement client-side search logic.
     - [ ] Add debounce function.
     - [ ] Handle input events to call `google.script.run.searchGroups`.
