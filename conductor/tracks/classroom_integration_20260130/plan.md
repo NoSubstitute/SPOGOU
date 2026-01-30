@@ -17,8 +17,17 @@
     - [x] Trigger `google.script.run.getClassrooms` when `teacheremail` validation succeeds (or on blur).
     - [x] Populate `classroom-list` with the results.
     - [x] Ensure typing filters the list (native datalist behavior).
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Implementation'
+- [x] Task: Improve UI/UX.
+    - [x] Add "Clear" (X) buttons to all inputs.
+    - [x] Implement auto-clear (exclusive selection) for Group/Classroom.
+    - [x] Consolidate SAVE/NEXT buttons.
 
-## Phase 3: Core Logic Integration (TBD)
-- [ ] Task: Update `saveData` and `printUsersFromGroup` to handle Classroom ID.
-    - [ ] *Pending clarification on how this interacts with the Group field.*
+## Phase 3: Core Logic Integration
+- [ ] Task: Update `printUsersFromGroup` (or create `printUsersFromClassroom`).
+    - [ ] Handle the `classroomNameProp` property.
+    - [ ] If classroom is selected, fetch students using `Classroom.Courses.Students.list`.
+    - [ ] Map students to the spreadsheet format.
+- [ ] Task: Verify Sheet Preparation.
+    - [ ] Ensure the 'Group' sheet is populated correctly regardless of source.
+    - [ ] Ensure 'Log' sheet reflects the source type.
+
