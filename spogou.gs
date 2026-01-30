@@ -539,3 +539,43 @@ function cleanUpDEV() {
 /**
 Last edit: 20210706-1940
 */
+
+/**
+ * Searches for groups matching the query using the Admin Directory API.
+ * 
+ * @param {string} query - The search query (part of the group email).
+ * @returns {Array} An array of group objects {email, name}.
+ */
+function searchGroups(query) {
+  if (!query || query.length < 3) {
+    return [];
+  }
+  
+  try {
+    var userEmail = Session.getActiveUser().getEmail();
+    var domain = userEmail.split('@').pop();
+    
+    var args = {
+      domain: domain,
+      query: "email:" + query + "*",
+      maxResults: 10
+    };
+    
+    var page = AdminDirectory.Groups.list(args);
+    var groups = page.groups;
+    
+    if (groups) {
+      return groups.map(function(group) {
+        return {
+          email: group.email,
+          name: group.name
+        };
+      });
+    } else {
+      return [];
+    }
+  } catch (err) {
+    console.error('Error searching groups: ' + err.message);
+    return [];
+  }
+}
