@@ -187,9 +187,10 @@
       classroomInput.value = '';
       classroomInput.disabled = true;
       document.getElementById('classroom-list').innerHTML = '';
+      document.getElementById('classroom-validation-icon').style.display = 'none'; // Hide icon
       cachedClassrooms = [];
       
-      if (!teacherEmail || teacherEmail.length < 5) return; // Basic validation
+      if (!teacherEmail || teacherEmail.length < 5) return; 
       
       google.script.run
         .withSuccessHandler(function(classrooms) {
@@ -218,21 +219,46 @@
        } else {
          document.getElementById('classroom').disabled = true;
          document.getElementById('classroom').placeholder = "Select Classroom here";
+         document.getElementById('classroom-validation-icon').style.display = 'none';
        }
        validate();
     });
     
-    field3.addEventListener('input', validate);
+    // Classroom validation logic
+    field3.addEventListener('input', function() {
+        var query = field3.value;
+        var icon = document.getElementById('classroom-validation-icon');
+        
+        if (query.length < 1) {
+            icon.style.display = 'none';
+            validate();
+            return;
+        }
+        
+        var exactMatch = cachedClassrooms.some(function(c) {
+            return c.name === query;
+        });
+        
+        icon.style.display = 'inline-block';
+        if (exactMatch) {
+            icon.innerText = 'check_circle';
+            icon.style.color = 'green';
+        } else {
+            icon.innerText = 'error';
+            icon.style.color = 'orange';
+        }
+        validate();
+    });
 
     function validate(){
-      var teacherValid = !isEmpty(field2);
-      var groupValid = !isEmpty(field1);
-      var classroomValid = !isEmpty(field3);
+      // Strict validation: Check for green checkmark icon
+      var teacherValid = isVerified('teacher-validation-icon');
+      var groupValid = isVerified('group-validation-icon');
+      var classroomValid = isVerified('classroom-validation-icon');
       
       var nextButton = document.getElementById("btnPrepPass");
       
       // Requirement: Teacher AND (Group XOR Classroom)
-      // XOR Logic: (A || B) && !(A && B)
       var sourceSelected = (groupValid || classroomValid);
       var onlyOneSource = !(groupValid && classroomValid);
       
@@ -243,13 +269,15 @@
         nextButton.disabled = true;
         
         if (groupValid && classroomValid) {
-             // Check if toast already exists to avoid spamming
-             var toastElement = document.querySelector('.toast');
-             if (!toastElement || toastElement.innerText.indexOf('one source') === -1) {
-                 M.toast({html: 'Please select either a Group OR a Classroom, not both.', classes: 'rounded red'});
-             }
+             M.Toast.dismissAll(); // Clear previous to prevent stacking
+             M.toast({html: 'Please select either a Group OR a Classroom, not both.', classes: 'rounded red'});
         }
       }
+    }
+    
+    function isVerified(iconId) {
+        var icon = document.getElementById(iconId);
+        return icon && icon.style.display !== 'none' && icon.innerText === 'check_circle';
     }
     
     function isEmpty(element){
