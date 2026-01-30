@@ -4,9 +4,9 @@
 - [x] Task: Update `appsscript.json` configuration. 9673344
     - [x] Enable `Classroom` advanced service.
     - [x] Add `https://www.googleapis.com/auth/classroom.courses.readonly` and `https://www.googleapis.com/auth/classroom.rosters.readonly` scopes.
-- [ ] Task: Implement `getClassrooms(teacherEmail)` in `spogou.gs`.
-    - [ ] Write Tests: Create `test/classroom.test.js` (mocked).
-    - [ ] Implement Feature: Use `Classroom.Courses.list({teacherId: ...})`.
+- [x] Task: Implement `getClassrooms(teacherEmail)` in `spogou.gs`. e070ef1
+    - [x] Write Tests: Create `test/classroom.test.js` (mocked).
+    - [x] Implement Feature: Use `Classroom.Courses.list({teacherId: ...})`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Backend'
 
 ## Phase 2: Frontend Implementation
