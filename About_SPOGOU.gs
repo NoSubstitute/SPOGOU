@@ -21,6 +21,7 @@
  * - UI: Added autocomplete datalist and validation icon to SidebarPrepSheets.html for both group and teacher emails.
  * - UI: Added 'Select Classroom' input field with datalist to SidebarPrepSheets.html.
  * - UI: Implemented client-side logic to fetch Classrooms when a valid teacher is selected.
+ * - UI: Removed 'SAVE' button; 'NEXT' button now saves data and proceeds. Updated validation to require Teacher AND (Group OR Classroom).
  * - UI: Implemented client-side autocomplete logic with debouncing and validation status.
  * - UI: Optimized validation UI responsiveness by using local cache and adjusted icon positioning.
  * - UI: Swapped teacher and group email fields; updated button labels to 'SAVE' and 'NEXT'.

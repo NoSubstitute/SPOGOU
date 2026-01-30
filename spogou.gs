@@ -163,20 +163,21 @@ function prepareSheets() {
 }
 
 /**
- * Saves user input data (group email, teacher email, change password setting) to UserProperties.
+ * Saves user input data (group email, teacher email, change password setting, classroom) to UserProperties.
  * 
  * @param {string} groupemail1 - The group email address.
  * @param {string} teacheremail1 - The teacher's email address.
  * @param {string} changePass1 - Whether to force password change on next login.
+ * @param {string} classroomName - The name of the selected classroom (optional).
  * @returns {Array} An array containing the input data and domain.
  */
-function saveData(groupemail1, teacheremail1, changePass1) {
+function saveData(groupemail1, teacheremail1, changePass1, classroomName) {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
-  PropertiesService.getUserProperties().setProperty("groupEmailProp", groupemail1);
+  PropertiesService.getUserProperties().setProperty("groupEmailProp", groupemail1 || "");
   PropertiesService.getUserProperties().setProperty("teacherEmailProp", teacheremail1);
   PropertiesService.getUserProperties().setProperty("changePassProp", changePass1);
-  var result = [groupemail1, teacheremail1, changePass1, domain]
-  //  Logger.log([result]);
+  PropertiesService.getUserProperties().setProperty("classroomNameProp", classroomName || "");
+  var result = [groupemail1, teacheremail1, changePass1, domain, classroomName];
   return [result];
 }
 

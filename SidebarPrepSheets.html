@@ -77,10 +77,7 @@
 					<label>Change Password TRUE/FALSE</label>
 					Select TRUE if you want to force a password reset on first login
 				</div>
-				<div class="col s4">
-					<button type="button" class="btn-small waves-effect waves-light " id="btnSaveData" disabled>SAVE</button>
-				</div>
-				<div class="col s4">
+				<div class="col s12" style="text-align: right;">
 					<button type="button" class="btn-small waves-effect waves-light" id="btnPrepPass" disabled>NEXT</button>
 				</div>
 			</div>
@@ -91,10 +88,10 @@
         var instance = M.FormSelect.init(elems, options);
       });
       var instance = M.FormSelect.getInstance(elems);
-      document.getElementById("btnSaveData").addEventListener("click",goSaveData);
+      
       var field1 = document.getElementById("groupemail");
       var field2 = document.getElementById("teacheremail");
-      var buttonSave = document.getElementById("btnSaveData");
+      var field3 = document.getElementById("classroom");
       var buttonNext = document.getElementById("btnPrepPass");
     
     // Autocomplete logic
@@ -121,6 +118,7 @@
         icon.innerText = 'error';
         icon.style.color = 'orange';
       }
+      validate(); // Trigger validation on UI update
     }
 
     function setupAutocomplete(input, listId, iconId, serverFunc, currentResultsRef) {
@@ -201,11 +199,7 @@
            
            classrooms.forEach(function(c) {
              var option = document.createElement('option');
-             option.value = c.name; // Display name
-             // We might need to store ID separately if we want to send it back. 
-             // Datalist options usually just show value. 
-             // For now, let's just use name for selection, assuming unique enough or user verify.
-             // Ideally we'd map name -> id on save.
+             option.value = c.name; 
              datalist.appendChild(option);
            });
            
@@ -225,46 +219,50 @@
          document.getElementById('classroom').disabled = true;
          document.getElementById('classroom').placeholder = "Select Classroom here";
        }
+       validate();
     });
+    
+    field3.addEventListener('input', validate);
 
     function validate(){
-      if(!isEmpty(field1)&&!isEmpty(field2)){
-        buttonSave.disabled=false;
-      }else{
-        buttonSave.disabled=true;
+      var teacherValid = !isEmpty(field2);
+      var groupValid = !isEmpty(field1);
+      var classroomValid = !isEmpty(field3);
+      
+      // Requirement: Teacher AND (Group OR Classroom)
+      if (teacherValid && (groupValid || classroomValid)) {
+        buttonNext.disabled = false;
+      } else {
+        buttonNext.disabled = true;
       }
     }
+    
     function isEmpty(element){
-      if(element.value.length==0){
-        return true;
-      }else{
-        return false;
-      }
+      return element.value.trim().length === 0;
     }
-      function goSaveData(){
+    
+    document.getElementById("btnPrepPass").addEventListener("click", goNext);
+    
+    function goNext() {
+        buttonNext.disabled = true; // Prevent double clicks
+        buttonNext.innerHTML = "SAVING...";
+        
         var groupemail1 = document.getElementById("groupemail").value;
         var teacheremail1 = document.getElementById("teacheremail").value;
         var changePass1 = document.getElementById("changePass").value;
+        var classroom1 = document.getElementById("classroom").value;
+        
         google.script.run
-        .withSuccessHandler(printutData)
-        .saveData(groupemail1,teacheremail1,changePass1);
-      }
-      window.printutData = function(utData) {
-        var i,innerArray;
-        var L = utData.length;
-        for (i=0;i<L;i++) {
-          innerArray = utData[i];
-          value1 = innerArray[0]; 
-          value2 = innerArray[1];
-          value3 = innerArray[2];
-          value4 = innerArray[3];    
-        }
-        buttonNext.disabled=false;
-      }
-      document.getElementById("btnPrepPass").addEventListener("click",goPrepPass);
-      function goPrepPass(){
-        google.script.run.openSidebarPrepPasswords();
-      }
+            .withSuccessHandler(function() {
+                google.script.run.openSidebarPrepPasswords();
+            })
+            .withFailureHandler(function(err) {
+                M.toast({html: 'Error saving data: ' + err.message});
+                buttonNext.disabled = false;
+                buttonNext.innerHTML = "NEXT";
+            })
+            .saveData(groupemail1, teacheremail1, changePass1, classroom1);
+    }
 		</script>
 </body>
 
