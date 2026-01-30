@@ -59,7 +59,7 @@
 				</div>
 				<datalist id="teachers-list"></datalist>
 				<div style="display: flex; align-items: center;">
-					<input placeholder="Enter group email here" type="text" id="groupemail" list="groups-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;">
+					<input placeholder="Enter group email here" type="text" id="groupemail" list="groups-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;" disabled>
 					<i id="group-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
 				</div>
 				<datalist id="groups-list"></datalist>
@@ -223,8 +223,13 @@
        // Only fetch if valid (check green icon or cache)
        var icon = document.getElementById('teacher-validation-icon');
        if (icon.style.display !== 'none' && icon.innerText === 'check_circle') {
+         field1.disabled = false; // Enable Group field
          fetchClassrooms(field2.value);
        } else {
+         field1.disabled = true; // Disable Group field
+         field1.value = '';
+         document.getElementById('group-validation-icon').style.display = 'none';
+         
          document.getElementById('classroom').disabled = true;
          document.getElementById('classroom').placeholder = "Select Classroom here";
          document.getElementById('classroom-validation-icon').style.display = 'none';
@@ -245,6 +250,8 @@
 
         if (query.length < 1) {
             icon.style.display = 'none';
+            // When cleared, show the full list again
+            renderResults('classroom-list', cachedClassrooms);
             validate();
             return;
         }
@@ -262,6 +269,13 @@
             icon.style.color = 'orange';
         }
         validate();
+    });
+
+    // Helper to show full classroom list on click if empty
+    field3.addEventListener('focus', function() {
+        if (field3.value === '') {
+            renderResults('classroom-list', cachedClassrooms);
+        }
     });
 
     function validate(){
