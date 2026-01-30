@@ -177,6 +177,14 @@
     setupAutocomplete(field1, 'groups-list', 'group-validation-icon', 'searchGroups', 'cachedGroups');
     setupAutocomplete(field2, 'teachers-list', 'teacher-validation-icon', 'searchUsers', 'cachedTeachers');
     
+    // Auto-clear logic for exclusive selection
+    field1.addEventListener('input', function() {
+        if (field1.value.length > 0) {
+            field3.value = '';
+            document.getElementById('classroom-validation-icon').style.display = 'none';
+        }
+    });
+
     // Classroom Fetch Logic
     var cachedClassrooms = [];
     
@@ -229,6 +237,12 @@
         var query = field3.value;
         var icon = document.getElementById('classroom-validation-icon');
         
+        if (query.length > 0) {
+            // Auto-clear Group field
+            field1.value = '';
+            document.getElementById('group-validation-icon').style.display = 'none';
+        }
+
         if (query.length < 1) {
             icon.style.display = 'none';
             validate();
@@ -258,20 +272,12 @@
       
       var nextButton = document.getElementById("btnPrepPass");
       
-      // Requirement: Teacher AND (Group XOR Classroom)
-      var sourceSelected = (groupValid || classroomValid);
-      var onlyOneSource = !(groupValid && classroomValid);
-      
-      if (teacherValid && sourceSelected && onlyOneSource) {
+      // Requirement: Teacher AND (Group OR Classroom)
+      // (Auto-clear logic handles the "only one" requirement)
+      if (teacherValid && (groupValid || classroomValid)) {
         nextButton.disabled = false;
-        M.Toast.dismissAll();
       } else {
         nextButton.disabled = true;
-        
-        if (groupValid && classroomValid) {
-             M.Toast.dismissAll(); // Clear previous to prevent stacking
-             M.toast({html: 'Please select either a Group OR a Classroom, not both.', classes: 'rounded red'});
-        }
       }
     }
     
