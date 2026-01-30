@@ -198,7 +198,7 @@
       datalist.innerHTML = '';
       results.forEach(function(item) {
         var option = document.createElement('option');
-        option.value = item.email;
+        option.value = item.email || item.name;
         datalist.appendChild(option);
       });
     }
