@@ -229,11 +229,26 @@
       var groupValid = !isEmpty(field1);
       var classroomValid = !isEmpty(field3);
       
-      // Requirement: Teacher AND (Group OR Classroom)
-      if (teacherValid && (groupValid || classroomValid)) {
-        buttonNext.disabled = false;
+      var nextButton = document.getElementById("btnPrepPass");
+      
+      // Requirement: Teacher AND (Group XOR Classroom)
+      // XOR Logic: (A || B) && !(A && B)
+      var sourceSelected = (groupValid || classroomValid);
+      var onlyOneSource = !(groupValid && classroomValid);
+      
+      if (teacherValid && sourceSelected && onlyOneSource) {
+        nextButton.disabled = false;
+        M.Toast.dismissAll();
       } else {
-        buttonNext.disabled = true;
+        nextButton.disabled = true;
+        
+        if (groupValid && classroomValid) {
+             // Check if toast already exists to avoid spamming
+             var toastElement = document.querySelector('.toast');
+             if (!toastElement || toastElement.innerText.indexOf('one source') === -1) {
+                 M.toast({html: 'Please select either a Group OR a Classroom, not both.', classes: 'rounded red'});
+             }
+        }
       }
     }
     
