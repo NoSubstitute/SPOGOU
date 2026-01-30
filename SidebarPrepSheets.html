@@ -31,7 +31,7 @@
 			background-color: #fafafa !important; /* Slightly lighter than before */
 			border: 1px solid #e0e0e0 !important; /* Add border for visibility */
 			border-radius: 2px !important;
-			padding: 0 10px !important;
+			padding: 0 30px 0 10px !important; /* Extra right padding for icons */
 			height: 3rem !important;
 			width: 100% !important;
 			box-sizing: border-box !important;
@@ -39,6 +39,14 @@
 			margin-bottom: 8px !important;
             box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2) !important; /* Restore card-like shadow */
 		}
+        .clear-icon {
+            position: absolute; 
+            right: 35px; /* Position to the left of the validation icon */
+            cursor: pointer;
+            color: #9e9e9e;
+            font-size: 18px;
+            display: none; /* Hidden by default */
+        }
 	</style>
 	<div class="container">
 		<h6><b>There are only three steps of this process, and you just ran the first one</b></h6>
@@ -53,18 +61,21 @@
 		</div>
 		<div class="row">
 			<div class="input-field col s12">
-				<div style="display: flex; align-items: center;">
+				<div style="display: flex; align-items: center; position: relative;">
 					<input placeholder="Enter teacher email here" type="text" id="teacheremail" list="teachers-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;">
+                    <i id="teacher-clear" class="material-icons clear-icon">close</i>
 					<i id="teacher-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
 				</div>
 				<datalist id="teachers-list"></datalist>
-				<div style="display: flex; align-items: center;">
+				<div style="display: flex; align-items: center; position: relative;">
 					<input placeholder="Enter group email here" type="text" id="groupemail" list="groups-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;" disabled>
+                    <i id="group-clear" class="material-icons clear-icon">close</i>
 					<i id="group-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
 				</div>
 				<datalist id="groups-list"></datalist>
-				<div style="display: flex; align-items: center;">
+				<div style="display: flex; align-items: center; position: relative;">
 					<input placeholder="Select Classroom here" type="text" id="classroom" list="classroom-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;" disabled>
+                    <i id="classroom-clear" class="material-icons clear-icon">close</i>
 					<i id="classroom-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
 				</div>
 				<datalist id="classroom-list"></datalist>
@@ -99,8 +110,17 @@
     var cachedGroups = []; // Currently displayed results
     var cachedTeachers = []; // Currently displayed results
     
-    function updateValidationUI(query, iconId, currentResults) {
+    function updateValidationUI(query, iconId, currentResults, clearIconId) {
       var icon = document.getElementById(iconId);
+      var clearIcon = document.getElementById(clearIconId);
+      
+      // Toggle clear icon
+      if (query.length > 0) {
+          clearIcon.style.display = 'block';
+      } else {
+          clearIcon.style.display = 'none';
+      }
+      
       if (query.length < 3) {
         icon.style.display = 'none';
         return;
@@ -118,17 +138,26 @@
         icon.innerText = 'error';
         icon.style.color = 'orange';
       }
-      validate(); // Trigger validation on UI update
+      validate(); 
     }
 
-    function setupAutocomplete(input, listId, iconId, serverFunc, currentResultsRef) {
+    function setupAutocomplete(input, listId, iconId, serverFunc, currentResultsRef, clearIconId) {
       var timeout;
+      
+      // Clear Logic
+      document.getElementById(clearIconId).addEventListener('click', function() {
+          input.value = '';
+          input.focus();
+          // Trigger input event manually or just call handler logic
+          input.dispatchEvent(new Event('input')); 
+      });
+      
       input.addEventListener('input', function() {
         var query = input.value;
         var cacheKey = serverFunc + "_" + query;
         
-        // Immediate UI update from currently displayed results
-        updateValidationUI(query, iconId, window[currentResultsRef]);
+        // Immediate UI update 
+        updateValidationUI(query, iconId, window[currentResultsRef], clearIconId);
         
         // Clear previous timeout
         clearTimeout(timeout);
@@ -136,7 +165,7 @@
         if (query.length < 3) {
           document.getElementById(listId).innerHTML = '';
           window[currentResultsRef] = [];
-          updateValidationUI(query, iconId, []); // Force hide icon
+          updateValidationUI(query, iconId, [], clearIconId); 
           return;
         }
         
@@ -144,7 +173,7 @@
         if (searchCache[cacheKey]) {
           window[currentResultsRef] = searchCache[cacheKey];
           renderResults(listId, searchCache[cacheKey]);
-          updateValidationUI(query, iconId, searchCache[cacheKey]);
+          updateValidationUI(query, iconId, searchCache[cacheKey], clearIconId);
           return;
         }
         
@@ -158,7 +187,7 @@
               renderResults(listId, results);
               
               // Re-validate after server response
-              updateValidationUI(input.value, iconId, results);
+              updateValidationUI(input.value, iconId, results, clearIconId);
             })[serverFunc](query);
         }, 300);
       });
@@ -174,14 +203,15 @@
       });
     }
 
-    setupAutocomplete(field1, 'groups-list', 'group-validation-icon', 'searchGroups', 'cachedGroups');
-    setupAutocomplete(field2, 'teachers-list', 'teacher-validation-icon', 'searchUsers', 'cachedTeachers');
+    setupAutocomplete(field1, 'groups-list', 'group-validation-icon', 'searchGroups', 'cachedGroups', 'group-clear');
+    setupAutocomplete(field2, 'teachers-list', 'teacher-validation-icon', 'searchUsers', 'cachedTeachers', 'teacher-clear');
     
     // Auto-clear logic for exclusive selection
     field1.addEventListener('input', function() {
         if (field1.value.length > 0) {
             field3.value = '';
             document.getElementById('classroom-validation-icon').style.display = 'none';
+            document.getElementById('classroom-clear').style.display = 'none';
         }
     });
 
@@ -196,6 +226,7 @@
       classroomInput.disabled = true;
       document.getElementById('classroom-list').innerHTML = '';
       document.getElementById('classroom-validation-icon').style.display = 'none'; // Hide icon
+      document.getElementById('classroom-clear').style.display = 'none';
       cachedClassrooms = [];
       
       if (!teacherEmail || teacherEmail.length < 5) return; 
@@ -229,23 +260,39 @@
          field1.disabled = true; // Disable Group field
          field1.value = '';
          document.getElementById('group-validation-icon').style.display = 'none';
+         document.getElementById('group-clear').style.display = 'none';
          
          document.getElementById('classroom').disabled = true;
          document.getElementById('classroom').placeholder = "Select Classroom here";
          document.getElementById('classroom-validation-icon').style.display = 'none';
+         document.getElementById('classroom-clear').style.display = 'none';
        }
        validate();
     });
     
     // Classroom validation logic
+    var classroomClear = document.getElementById('classroom-clear');
+    
+    classroomClear.addEventListener('click', function() {
+        field3.value = '';
+        field3.focus();
+        field3.dispatchEvent(new Event('input'));
+    });
+    
     field3.addEventListener('input', function() {
         var query = field3.value;
         var icon = document.getElementById('classroom-validation-icon');
         
+        // Show/Hide Clear Icon
         if (query.length > 0) {
+            classroomClear.style.display = 'block';
+            
             // Auto-clear Group field
             field1.value = '';
             document.getElementById('group-validation-icon').style.display = 'none';
+            document.getElementById('group-clear').style.display = 'none';
+        } else {
+            classroomClear.style.display = 'none';
         }
 
         if (query.length < 1) {
