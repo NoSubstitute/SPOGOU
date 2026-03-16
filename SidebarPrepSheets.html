@@ -1,379 +1,238 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-	<base target="_top">
+    <base target="_top">
 </head>
-
 <body>
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-	<script>
-		var elems=""
-    var options=""
-	</script>
-	<script>
-		$(document).ready(function(){
-    M.updateTextFields();
-    })
-	</script>
-	<style>
-		.container {
-			width: 95%;
-			padding: 5px;
-		}
-		.input-field {
-			margin-bottom: 10px;
-		}
-		.spogou-input {
-			background-color: #fafafa !important; /* Slightly lighter than before */
-			border: 1px solid #e0e0e0 !important; /* Add border for visibility */
-			border-radius: 2px !important;
-			padding: 0 30px 0 10px !important; /* Extra right padding for icons */
-			height: 3rem !important;
-			width: 100% !important;
-			box-sizing: border-box !important;
-			text-align: left !important;
-			margin-bottom: 8px !important;
-            box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2) !important; /* Restore card-like shadow */
-		}
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            M.updateTextFields();
+            var elems = document.querySelectorAll('select');
+            M.FormSelect.init(elems);
+        });
+    </script>
+    <style>
+        .container { width: 95%; padding: 5px; }
+        .spogou-input {
+            background-color: #fafafa !important;
+            border: 1px solid #e0e0e0 !important;
+            border-radius: 2px !important;
+            padding: 0 30px 0 10px !important;
+            height: 3rem !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-align: left !important;
+            margin-bottom: 8px !important;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2) !important;
+        }
         .clear-icon {
             position: absolute; 
-            right: 35px; /* Position to the left of the validation icon */
+            right: 35px;
             cursor: pointer;
             color: #9e9e9e;
             font-size: 18px;
-            display: none; /* Hidden by default */
+            display: none;
         }
-	</style>
-	<div class="container">
-		<h6><b>There are only three steps of this process, and you just ran the first one</b></h6>
-		<blockquote>
-			<h6><b>Start</b> - SPOGOU prepared the worksheets.</h6>
-		</blockquote>
-		<h6><b>Prepare passwords</b></h6>
-		<h6><b>Set passwords</b></h6>
-		<div class="card-panel blue lighten-2">
-			<h6>Fill in teacher and group emails below, make a choice whether you want to force a password reset on
-				first login, and then click <i>SAVE</i>, followed by <i>NEXT</i>.</h6>
-		</div>
-		<div class="row">
-			<div class="input-field col s12">
-				<div style="display: flex; align-items: center; position: relative;">
-					<input placeholder="Enter teacher email here" type="text" id="teacheremail" list="teachers-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;">
+        .info-box { font-size: 0.9rem; padding: 10px; margin-bottom: 15px; }
+    </style>
+    <div class="container">
+        <h6><b>Step 1: Identify Target Users</b></h6>
+        <div class="card-panel blue lighten-4 info-box">
+            Enter the teacher's email and select a Group or Classroom to fetch students from.
+        </div>
+        
+        <div class="row">
+            <div class="input-field col s12">
+                <!-- Teacher Email -->
+                <div style="display: flex; align-items: center; position: relative;">
+                    <input placeholder="Teacher Email (Requester)" type="text" id="teacheremail" list="teachers-list" class="spogou-input" oninput="validate()">
                     <i id="teacher-clear" class="material-icons clear-icon">close</i>
-					<i id="teacher-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
-				</div>
-				<datalist id="teachers-list"></datalist>
-				<div style="display: flex; align-items: center; position: relative;">
-					<input placeholder="Enter group email here" type="text" id="groupemail" list="groups-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;" disabled>
+                    <i id="teacher-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
+                </div>
+                <datalist id="teachers-list"></datalist>
+
+                <!-- Group Email -->
+                <div style="display: flex; align-items: center; position: relative;">
+                    <input placeholder="Target Group Email" type="text" id="groupemail" list="groups-list" class="spogou-input" oninput="validate()" disabled>
                     <i id="group-clear" class="material-icons clear-icon">close</i>
-					<i id="group-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
-				</div>
-				<datalist id="groups-list"></datalist>
-				<div style="display: flex; align-items: center; position: relative;">
-					<input placeholder="Select Classroom here" type="text" id="classroom" list="classroom-list" class="spogou-input" oninput="validate()" style="flex-grow: 1; margin-bottom: 0;" disabled>
+                    <i id="group-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
+                </div>
+                <datalist id="groups-list"></datalist>
+
+                <!-- Classroom Selection -->
+                <div style="display: flex; align-items: center; position: relative;">
+                    <input placeholder="OR Select Classroom" type="text" id="classroom" list="classroom-list" class="spogou-input" oninput="validate()" disabled>
                     <i id="classroom-clear" class="material-icons clear-icon">close</i>
-					<i id="classroom-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
-				</div>
-				<datalist id="classroom-list"></datalist>
-      </div>
-				<div class="input-field col s12">
-					<select id="changePass">
-        <option value="FALSE">FALSE</option>
-        <option value="TRUE">TRUE</option>
-        </select>
-					<label>Change Password TRUE/FALSE</label>
-					Select TRUE if you want to force a password reset on first login
-				</div>
-				<div class="col s12" style="text-align: right;">
-					<button type="button" class="btn-small waves-effect waves-light" id="btnPrepPass" disabled>NEXT</button>
-				</div>
-			</div>
-		</div>
-		<script>
-			document.addEventListener('DOMContentLoaded', function() {
-        var elems = document.querySelectorAll('select');
-        var instance = M.FormSelect.init(elems, options);
-      });
-      var instance = M.FormSelect.getInstance(elems);
-      
-      var field1 = document.getElementById("groupemail");
-      var field2 = document.getElementById("teacheremail");
-      var field3 = document.getElementById("classroom");
-      var buttonNext = document.getElementById("btnPrepPass");
-    
-    // Autocomplete logic
-    var searchCache = {}; // Map of "serverFunc_query" -> results
-    var cachedGroups = []; // Currently displayed results
-    var cachedTeachers = []; // Currently displayed results
-    
-    function updateValidationUI(query, iconId, currentResults, clearIconId) {
-      var icon = document.getElementById(iconId);
-      var clearIcon = document.getElementById(clearIconId);
-      
-      // Toggle clear icon
-      if (query.length > 0) {
-          clearIcon.style.display = 'block';
-      } else {
-          clearIcon.style.display = 'none';
-      }
-      
-      if (query.length < 3) {
-        icon.style.display = 'none';
-        return;
-      }
-      
-      var exactMatch = currentResults.some(function(item) {
-        return item.email.toLowerCase() === query.toLowerCase();
-      });
-      
-      icon.style.display = 'inline-block';
-      if (exactMatch) {
-        icon.innerText = 'check_circle';
-        icon.style.color = 'green';
-      } else {
-        icon.innerText = 'error';
-        icon.style.color = 'orange';
-      }
-      validate(); 
-    }
+                    <i id="classroom-validation-icon" class="material-icons" style="margin-left: 10px; display: none;"></i>
+                </div>
+                <datalist id="classroom-list"></datalist>
+                <div id="classroom-help" style="font-size: 0.75rem; color: #757575; display: none; margin-top: -5px; margin-bottom: 10px;">
+                    Don't see the classroom? Use the <b>Classroom Visitor</b> feature to join it first.
+                </div>
+            </div>
 
-    function setupAutocomplete(input, listId, iconId, serverFunc, currentResultsRef, clearIconId) {
-      var timeout;
-      
-      // Clear Logic
-      document.getElementById(clearIconId).addEventListener('click', function() {
-          input.value = '';
-          input.focus();
-          // Trigger input event manually or just call handler logic
-          input.dispatchEvent(new Event('input')); 
-      });
-      
-      input.addEventListener('input', function() {
-        var query = input.value;
-        var cacheKey = serverFunc + "_" + query;
-        
-        // Immediate UI update 
-        updateValidationUI(query, iconId, window[currentResultsRef], clearIconId);
-        
-        // Clear previous timeout
-        clearTimeout(timeout);
-        
-        if (query.length < 3) {
-          document.getElementById(listId).innerHTML = '';
-          window[currentResultsRef] = [];
-          updateValidationUI(query, iconId, [], clearIconId); 
-          return;
-        }
-        
-        // Check Cache
-        if (searchCache[cacheKey]) {
-          window[currentResultsRef] = searchCache[cacheKey];
-          renderResults(listId, searchCache[cacheKey]);
-          updateValidationUI(query, iconId, searchCache[cacheKey], clearIconId);
-          return;
-        }
-        
-        timeout = setTimeout(function() {
-          google.script.run
-            .withSuccessHandler(function(results) {
-              // Store in Cache
-              searchCache[cacheKey] = results;
-              window[currentResultsRef] = results;
-              
-              renderResults(listId, results);
-              
-              // Re-validate after server response
-              updateValidationUI(input.value, iconId, results, clearIconId);
-            })[serverFunc](query);
-        }, 300);
-      });
-    }
-    
-    function renderResults(listId, results) {
-      var datalist = document.getElementById(listId);
-      datalist.innerHTML = '';
-      results.forEach(function(item) {
-        var option = document.createElement('option');
-        option.value = item.email || item.name;
-        datalist.appendChild(option);
-      });
-    }
+            <div class="input-field col s12">
+                <select id="changePass">
+                    <option value="FALSE">FALSE</option>
+                    <option value="TRUE">TRUE</option>
+                </select>
+                <label>Force password reset on first login?</label>
+            </div>
 
-    setupAutocomplete(field1, 'groups-list', 'group-validation-icon', 'searchGroups', 'cachedGroups', 'group-clear');
-    setupAutocomplete(field2, 'teachers-list', 'teacher-validation-icon', 'searchUsers', 'cachedTeachers', 'teacher-clear');
-    
-    // Auto-clear logic for exclusive selection
-    field1.addEventListener('input', function() {
-        if (field1.value.length > 0) {
-            field3.value = '';
-            document.getElementById('classroom-validation-icon').style.display = 'none';
-            document.getElementById('classroom-clear').style.display = 'none';
-        }
-    });
+            <div class="col s12" style="text-align: right; margin-top: 10px;">
+                <button type="button" class="btn waves-effect waves-light blue" id="btnNext" disabled>NEXT</button>
+            </div>
+        </div>
+    </div>
 
-    // Classroom Fetch Logic
-    var cachedClassrooms = [];
-    
-    function fetchClassrooms(teacherEmail) {
-      var classroomInput = document.getElementById('classroom');
-      
-      // Clear previous
-      classroomInput.value = '';
-      classroomInput.disabled = true;
-      document.getElementById('classroom-list').innerHTML = '';
-      document.getElementById('classroom-validation-icon').style.display = 'none'; // Hide icon
-      document.getElementById('classroom-clear').style.display = 'none';
-      cachedClassrooms = [];
-      
-      if (!teacherEmail || teacherEmail.length < 5) return; 
-      
-      google.script.run
-        .withSuccessHandler(function(classrooms) {
-           cachedClassrooms = classrooms;
-           var datalist = document.getElementById('classroom-list');
-           datalist.innerHTML = '';
-           
-           classrooms.forEach(function(c) {
-             var option = document.createElement('option');
-             option.value = c.name; 
-             datalist.appendChild(option);
-           });
-           
-           classroomInput.disabled = false;
-           classroomInput.placeholder = "Select Classroom (" + classrooms.length + " found)";
-        })
-        .getClassrooms(teacherEmail);
-    }
-    
-    // Listen for teacher email selection/validation
-    field2.addEventListener('change', function() {
-       // Only fetch if valid (check green icon or cache)
-       var icon = document.getElementById('teacher-validation-icon');
-       if (icon.style.display !== 'none' && icon.innerText === 'check_circle') {
-         field1.disabled = false; // Enable Group field
-         fetchClassrooms(field2.value);
-       } else {
-         field1.disabled = true; // Disable Group field
-         field1.value = '';
-         document.getElementById('group-validation-icon').style.display = 'none';
-         document.getElementById('group-clear').style.display = 'none';
-         
-         document.getElementById('classroom').disabled = true;
-         document.getElementById('classroom').placeholder = "Select Classroom here";
-         document.getElementById('classroom-validation-icon').style.display = 'none';
-         document.getElementById('classroom-clear').style.display = 'none';
-       }
-       validate();
-    });
-    
-    // Classroom validation logic
-    var classroomClear = document.getElementById('classroom-clear');
-    
-    classroomClear.addEventListener('click', function() {
-        field3.value = '';
-        field3.focus();
-        field3.dispatchEvent(new Event('input'));
-    });
-    
-    field3.addEventListener('input', function() {
-        var query = field3.value;
-        var icon = document.getElementById('classroom-validation-icon');
+    <script>
+        var field1 = document.getElementById("groupemail");
+        var field2 = document.getElementById("teacheremail");
+        var field3 = document.getElementById("classroom");
+        var buttonNext = document.getElementById("btnNext");
+        var classroomHelp = document.getElementById("classroom-help");
         
-        // Show/Hide Clear Icon
-        if (query.length > 0) {
-            classroomClear.style.display = 'block';
+        var searchCache = {};
+        var cachedGroups = [];
+        var cachedTeachers = [];
+        var cachedClassrooms = [];
+        var lastFetchedTeacher = "";
+
+        function validate(){
+            var tValid = isVerified('teacher-validation-icon');
+            var gValid = isVerified('group-validation-icon');
+            var cValid = isVerified('classroom-validation-icon');
+            buttonNext.disabled = !(tValid && (gValid || cValid));
+        }
+
+        function isVerified(id) {
+            var icon = document.getElementById(id);
+            if (!icon || icon.style.display === 'none') return false;
+            return icon.innerText === 'check_circle' || icon.innerText === 'check';
+        }
+
+        function updateValidationUI(query, iconId, results, clearId) {
+            var icon = document.getElementById(iconId);
+            var clear = document.getElementById(clearId);
+            clear.style.display = query.length > 0 ? 'block' : 'none';
             
-            // Auto-clear Group field
-            field1.value = '';
-            document.getElementById('group-validation-icon').style.display = 'none';
-            document.getElementById('group-clear').style.display = 'none';
-        } else {
-            classroomClear.style.display = 'none';
-        }
+            if (query.length < 3) { icon.style.display = 'none'; validate(); return; }
+            
+            var exact = results.some(function(item) {
+                return (item.email && item.email.toLowerCase() === query.toLowerCase()) || 
+                       (item.name && item.name.toLowerCase() === query.toLowerCase());
+            });
+            
+            icon.style.display = 'inline-block';
+            if (exact) {
+                icon.innerText = 'check_circle'; icon.style.color = 'green';
+            } else if (iconId === 'teacher-validation-icon' && /\S+@\S+\.\S+/.test(query)) {
+                icon.innerText = 'check'; icon.style.color = 'blue';
+            } else {
+                icon.innerText = 'error'; icon.style.color = 'orange';
+            }
 
-        if (query.length < 1) {
-            icon.style.display = 'none';
-            // When cleared, show the full list again
-            renderResults('classroom-list', cachedClassrooms);
+            if (iconId === 'teacher-validation-icon') handleTeacherState(query);
             validate();
-            return;
         }
-        
-        var exactMatch = cachedClassrooms.some(function(c) {
-            return c.name === query;
+
+        function handleTeacherState(email) {
+            var verified = isVerified('teacher-validation-icon');
+            field1.disabled = !verified;
+            if (verified) {
+                if (email !== lastFetchedTeacher) {
+                    lastFetchedTeacher = email;
+                    fetchClassrooms(email);
+                }
+            } else {
+                field1.value = ''; field3.value = ''; field3.disabled = true;
+                document.getElementById('group-validation-icon').style.display = 'none';
+                document.getElementById('classroom-validation-icon').style.display = 'none';
+                classroomHelp.style.display = 'none';
+            }
+        }
+
+        function fetchClassrooms(email) {
+            field3.disabled = true;
+            field3.value = '';
+            classroomHelp.style.display = 'none';
+            google.script.run.withSuccessHandler(function(rooms) {
+                cachedClassrooms = rooms;
+                renderResults('classroom-list', rooms);
+                field3.disabled = false;
+                if (rooms.length === 0) {
+                    field3.placeholder = "No classrooms found";
+                    classroomHelp.style.display = 'block';
+                } else {
+                    field3.placeholder = "Select Classroom (" + rooms.length + ")";
+                }
+                validate();
+            }).getClassrooms(email);
+        }
+
+        function setupAutocomplete(input, listId, iconId, serverFunc, resultsRef, clearId) {
+            var timeout;
+            document.getElementById(clearId).addEventListener('click', function() {
+                input.value = ''; input.dispatchEvent(new Event('input')); input.focus();
+            });
+            input.addEventListener('input', function() {
+                var query = input.value.trim();
+                updateValidationUI(query, iconId, window[resultsRef], clearId);
+                clearTimeout(timeout);
+                if (query.length < 3) return;
+                var cacheKey = serverFunc + "_" + query;
+                if (searchCache[cacheKey]) {
+                    window[resultsRef] = searchCache[cacheKey];
+                    renderResults(listId, searchCache[cacheKey]);
+                    updateValidationUI(query, iconId, searchCache[cacheKey], clearId);
+                    return;
+                }
+                timeout = setTimeout(function() {
+                    google.script.run.withSuccessHandler(function(res) {
+                        searchCache[cacheKey] = res; window[resultsRef] = res;
+                        renderResults(listId, res);
+                        updateValidationUI(input.value.trim(), iconId, res, clearId);
+                    })[serverFunc](query);
+                }, 300);
+            });
+        }
+
+        function renderResults(listId, res) {
+            var dl = document.getElementById(listId);
+            dl.textContent = '';
+            res.forEach(function(item) {
+                var opt = document.createElement('option');
+                opt.value = item.email || item.name;
+                dl.appendChild(opt);
+            });
+        }
+
+        setupAutocomplete(field1, 'groups-list', 'group-validation-icon', 'searchGroups', 'cachedGroups', 'group-clear');
+        setupAutocomplete(field2, 'teachers-list', 'teacher-validation-icon', 'searchUsers', 'cachedTeachers', 'teacher-clear');
+
+        field1.addEventListener('input', function() { if (field1.value.length > 0) { field3.value = ''; document.getElementById('classroom-validation-icon').style.display = 'none'; validate(); } });
+        field3.addEventListener('input', function() { 
+            var query = field3.value.trim();
+            var icon = document.getElementById('classroom-validation-icon');
+            document.getElementById('classroom-clear').style.display = query.length > 0 ? 'block' : 'none';
+            if (query.length > 0) { field1.value = ''; document.getElementById('group-validation-icon').style.display = 'none'; }
+            var exact = cachedClassrooms.some(function(c) { return c.name === query; });
+            icon.style.display = query.length > 0 ? 'inline-block' : 'none';
+            if (exact) { icon.innerText = 'check_circle'; icon.style.color = 'green'; }
+            else { icon.innerText = 'error'; icon.style.color = 'orange'; }
+            validate();
         });
-        
-        icon.style.display = 'inline-block';
-        if (exactMatch) {
-            icon.innerText = 'check_circle';
-            icon.style.color = 'green';
-        } else {
-            icon.innerText = 'error';
-            icon.style.color = 'orange';
-        }
-        validate();
-    });
 
-    // Helper to show full classroom list on click if empty
-    field3.addEventListener('focus', function() {
-        if (field3.value === '') {
-            renderResults('classroom-list', cachedClassrooms);
-        }
-    });
-
-    function validate(){
-      // Strict validation: Check for green checkmark icon
-      var teacherValid = isVerified('teacher-validation-icon');
-      var groupValid = isVerified('group-validation-icon');
-      var classroomValid = isVerified('classroom-validation-icon');
-      
-      var nextButton = document.getElementById("btnPrepPass");
-      
-      // Requirement: Teacher AND (Group OR Classroom)
-      // (Auto-clear logic handles the "only one" requirement)
-      if (teacherValid && (groupValid || classroomValid)) {
-        nextButton.disabled = false;
-      } else {
-        nextButton.disabled = true;
-      }
-    }
-    
-    function isVerified(iconId) {
-        var icon = document.getElementById(iconId);
-        return icon && icon.style.display !== 'none' && icon.innerText === 'check_circle';
-    }
-    
-    function isEmpty(element){
-      return element.value.trim().length === 0;
-    }
-    
-    document.getElementById("btnPrepPass").addEventListener("click", goNext);
-    
-    function goNext() {
-        buttonNext.disabled = true; // Prevent double clicks
-        buttonNext.innerHTML = "SAVING...";
-        
-        var groupemail1 = document.getElementById("groupemail").value;
-        var teacheremail1 = document.getElementById("teacheremail").value;
-        var changePass1 = document.getElementById("changePass").value;
-        var classroom1 = document.getElementById("classroom").value;
-        
-        google.script.run
-            .withSuccessHandler(function() {
+        buttonNext.addEventListener("click", function() {
+            buttonNext.disabled = true; buttonNext.textContent = "SAVING...";
+            google.script.run.withSuccessHandler(function() {
                 google.script.run.openSidebarPrepPasswords();
-            })
-            .withFailureHandler(function(err) {
-                M.toast({html: 'Error saving data: ' + err.message});
-                buttonNext.disabled = false;
-                buttonNext.innerHTML = "NEXT";
-            })
-            .saveData(groupemail1, teacheremail1, changePass1, classroom1);
-    }
-		</script>
+            }).saveData(field1.value, field2.value, document.getElementById("changePass").value, field3.value);
+        });
+    </script>
 </body>
-
 </html>

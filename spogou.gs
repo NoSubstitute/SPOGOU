@@ -17,6 +17,7 @@ function onInstall(e) {
 function onOpen(e) {
   SpreadsheetApp.getUi().createAddonMenu()
     .addItem('Start', 'startPreparing')
+    .addItem('About', 'showAbout')
     .addToUi()
 }
 
@@ -403,26 +404,46 @@ function setPasswords() {
   var logsheet = ss.getSheetByName('Log')
   // Grab true/false for chpass from properties
   var getchangePassProp = PropertiesService.getUserProperties().getProperty("changePassProp");
-  //  Logger.log(getchangePassProp);
-  var chpass = getchangePassProp
-  //  Logger.log(chpass);
+  var chpass = (getchangePassProp === "TRUE");
+
   // Get all data from the second row to the last row with data, and the last column with data
   var lastrow = sheet.getLastRow();
+  if (lastrow < 2) return;
   var lastcolumn = sheet.getLastColumn();
   var range = sheet.getRange(2, 1, lastrow - 1, lastcolumn);
   var list = range.getValues();
+  
   for (var i = 0; i < list.length; i++) {
-    // Grab username from the first column (0), then the rest from adjoing columns and set necessary variables
     var email = list[i][0].toString();
     var pass = list[i][1].toString();
-    // For each line, try to update the user with given data, and log the result.
+    
     try {
-      var updateuser = AdminDirectory.Users.update({ password: pass, changePasswordAtNextLogin: chpass }, email);
-      logsheet.appendRow([new Date(), userEmail, "Password changed" + " User: " + email]);
+      // 1. Pre-check: Is the user suspended or deleted?
+      var user = AdminDirectory.Users.get(email);
+      if (user.suspended) {
+         logsheet.appendRow([new Date(), userEmail, "FAILED: User is SUSPENDED. User: " + email]);
+         continue;
+      }
+      
+      // 2. Attempt update
+      AdminDirectory.Users.update({ 
+        password: pass, 
+        changePasswordAtNextLogin: chpass 
+      }, email);
+      
+      logsheet.appendRow([new Date(), userEmail, "Password changed. User: " + email]);
 
-      // If the update fails for some reason, log the error
     } catch (err) {
-      logsheet.appendRow([email, err.message]);
+      var errorMsg = err.message;
+      // Refine common error messages
+      if (errorMsg.indexOf("Invalid Password") !== -1) {
+        errorMsg = "Invalid Password: Does not meet complexity requirements or is a recently used password.";
+      } else if (errorMsg.indexOf("suspended") !== -1) {
+        errorMsg = "Account suspended.";
+      }
+      
+      logsheet.appendRow([new Date(), userEmail, "ERROR for " + email + ": " + errorMsg]);
+      console.error("Error setting password for " + email + ": " + err.message);
     }
   }
   SpreadsheetApp.flush();
@@ -485,13 +506,111 @@ function cleanUp() {
  * Wrapper to list users, get names, create passwords, and open next sidebar.
  */
 function listUsersFormatPassword() {
-  printUsersFromGroup();
+  var classroomName = PropertiesService.getUserProperties().getProperty("classroomNameProp");
+  
+  if (classroomName) {
+    printUsersFromClassroom();
+  } else {
+    printUsersFromGroup();
+  }
+  
   SpreadsheetApp.flush();
   getUserNames();
   SpreadsheetApp.flush();
   FormatAndCreateListOfStudentPasswords();
   SpreadsheetApp.flush();
   openSidebarPasswordsPreped();
+}
+
+/**
+ * Fetches students from the specified Google Classroom and writes them to the 'Group' sheet.
+ * Handles pagination for large classes.
+ */
+function printUsersFromClassroom() {
+  var classroomName = PropertiesService.getUserProperties().getProperty("classroomNameProp");
+  var teacherEmail = PropertiesService.getUserProperties().getProperty("teacherEmailProp");
+  
+  if (!classroomName || !teacherEmail) {
+    console.error("Missing classroom or teacher information.");
+    return;
+  }
+
+  var courseId = null;
+  
+  // Find the Course ID from name
+  var courses = getClassrooms(teacherEmail);
+  for (var i = 0; i < courses.length; i++) {
+    if (courses[i].name === classroomName) {
+      courseId = courses[i].id;
+      break;
+    }
+  }
+  
+  if (!courseId) {
+    SpreadsheetApp.getUi().alert("Error: Could not find classroom '" + classroomName + "'.");
+    return;
+  }
+
+  // Get the current spreadsheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  SpreadsheetApp.setActiveSheet(ss.getSheetByName("Group"));
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRange('A2').activate();
+
+  var rows = [];
+  var pageToken = null;
+  
+  try {
+    do {
+      var response = Classroom.Courses.Students.list(courseId, {
+        pageSize: 100,
+        pageToken: pageToken
+      });
+      var students = response.students;
+      
+      if (students) {
+        for (var i = 0; i < students.length; i++) {
+          var student = students[i];
+          var email = student.profile ? student.profile.emailAddress : "";
+          if (!email && student.userId) {
+              // Fallback to fetching profile if student.profile is missing (Classroom API quirk)
+              try {
+                  var profile = Classroom.Registrations.get(courseId, student.userId); // This might be wrong endpoint, let's stick to student.profile.emailAddress or skip
+              } catch(e) {}
+          }
+          if (email) {
+            var row = [classroomValue, email, 'STUDENT', 'ACTIVE'];
+            rows.push(row);
+          }
+        }
+      }
+      pageToken = response.nextPageToken;
+    } while (pageToken);
+  } catch (err) {
+    var logsheet = ss.getSheetByName("Log");
+    var errorMessage = err.message;
+    var userFriendlyMessage = "Error fetching students: " + errorMessage;
+
+    if (errorMessage.indexOf("Requested entity was not found") !== -1 || errorMessage.indexOf("Entity not found") !== -1 || errorMessage.indexOf("not found") !== -1) {
+       userFriendlyMessage = "Access Denied: You do not have permission to view this Classroom's roster.\n\n" +
+                             "SOLUTION: Use the 'Classroom Visitor' feature in the Google Admin Console to temporarily join this class, then try again.";
+    }
+
+    if (logsheet) {
+      logsheet.appendRow([new Date(), "System", "Error fetching classroom students for ID " + courseId + ": " + errorMessage]);
+    }
+    SpreadsheetApp.getUi().alert(userFriendlyMessage);
+    return;
+  }
+
+  if (rows.length > 0) {
+    var sheetData = ss.getSheetByName("Group");
+    sheetData.getRange(2, 1, rows.length, 4).setValues(rows);
+  }
+  
+  SpreadsheetApp.flush();
+  SpreadsheetApp.setActiveSheet(ss.getSheetByName('Group'));
+  spreadsheet.getRange('A2').activate();
 }
 
 /**

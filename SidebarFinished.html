@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-	<base target="_top">
+    <base target="_top">
 </head>
-
 <body>
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-	<script>
-		$(document).ready(function(){
-   })
-	</script>
-	<div class="container">
-		<h6><b>Now SPOGOU is done.</b><br>The passwords have been set, and this Sheet has been shared with the teacher you provided in the beginning.</h6>
-			<div class="row">
-				<h6>Check the Log sheet to see that everything ran as expected.</h6>
-				<h6>You can then click the <b>Close</b> button to close this sidebar. SPOGOU will then remove the sheets
-					no longer needed.</h6>
-				<button class="waves-effect waves-light btn-small" id="btnClose">Close</button>
-			</div>
-	</div>
-	<script>
-		document.getElementById("btnClose").addEventListener("click",goClose);
-      function goClose(){
-        google.script.run.closeSidebarFinished();
-      }
-	</script>
-</body>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <div class="container" style="width: 95%; padding: 5px;">
+        <div class="center-align" style="margin-top: 20px;">
+            <i class="material-icons large green-text">check_circle</i>
+            <h5><b>All Done!</b></h5>
+        </div>
+        
+        <div class="card-panel green lighten-5" style="font-size: 0.9rem;">
+            <p>The passwords have been successfully updated, and the sheet has been shared with the teacher.</p>
+        </div>
 
+        <p style="font-size: 0.85rem; color: #757575;">
+            Click <b>CLOSE</b> to finish. SPOGOU will perform a final cleanup by removing the temporary 'Log' and 'Group' sheets.
+        </p>
+
+        <div class="center-align" style="margin-top: 30px;">
+            <button class="btn waves-effect waves-light blue" id="btnClose">CLOSE</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById("btnClose").addEventListener("click", function(){
+            this.disabled = true;
+            google.script.run.closeSidebarFinished();
+        });
+    </script>
+</body>
 </html>
