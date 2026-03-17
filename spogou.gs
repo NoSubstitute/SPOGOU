@@ -26,6 +26,13 @@ function onOpen(e) {
  * Initializes the sheets and opens the first sidebar.
  */
 function startPreparing() {
+  var userEmail = "";
+  try {
+    userEmail = Session.getActiveUser().getEmail();
+  } catch (e) {
+    userEmail = "Unknown (Auth pending)";
+  }
+  console.log("CRITICAL DEBUG: startPreparing called. User: " + userEmail);
   prepareSheets();
   openSidebarPrepSheets();
 }
@@ -638,15 +645,9 @@ function printUsersFromClassroom() {
       if (students) {
         for (var i = 0; i < students.length; i++) {
           var student = students[i];
-          var email = student.profile ? student.profile.emailAddress : "";
-          if (!email && student.userId) {
-              // Fallback to fetching profile if student.profile is missing (Classroom API quirk)
-              try {
-                  var profile = Classroom.Registrations.get(courseId, student.userId); // This might be wrong endpoint, let's stick to student.profile.emailAddress or skip
-              } catch(e) {}
-          }
+          var email = (student && student.profile) ? student.profile.emailAddress : "";
           if (email) {
-            var row = [classroomValue, email, 'STUDENT', 'ACTIVE'];
+            var row = [classroomName, email, 'STUDENT', 'ACTIVE'];
             rows.push(row);
           }
         }
