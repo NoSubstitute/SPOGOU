@@ -178,6 +178,16 @@ function prepareSheets() {
 function saveData(groupemail1, teacheremail1, changePass1, classroomName, altPass1, passType1, passLength1) {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   var userProps = PropertiesService.getUserProperties();
+  
+  console.log("Saving data in saveData:");
+  console.log("groupemail1: " + groupemail1);
+  console.log("teacheremail1: " + teacheremail1);
+  console.log("changePass1: " + changePass1);
+  console.log("classroomName: " + classroomName);
+  console.log("altPass1: " + altPass1);
+  console.log("passType1: " + passType1);
+  console.log("passLength1: " + passLength1);
+
   userProps.setProperty("groupEmailProp", groupemail1 || "");
   userProps.setProperty("teacherEmailProp", teacheremail1);
   userProps.setProperty("changePassProp", changePass1);
@@ -264,6 +274,10 @@ function getUserNames() {
   var logsheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Users');
   // Get all data from the second row to the last row with data, and the last column with data
   var lastrow = sheet.getLastRow();
+  if (lastrow < 2) {
+    Logger.log("No users found in 'Group' sheet.");
+    return;
+  }
   var lastcolumn = sheet.getLastColumn();
   var range = sheet.getRange(2, 1, lastrow - 1, lastcolumn);
   var list = range.getValues();
@@ -340,6 +354,7 @@ function FormatAndCreateListOfStudentPasswords() {
   sheet.getRange(2, 2, passwords.length, 1).setValues(passwords);
 
   SpreadsheetApp.flush();
+  tidyUpSpreadsheet();
 }
 
 /**
@@ -535,15 +550,34 @@ function cleanUp() {
  * Wrapper to list users, get names, create passwords, and open next sidebar.
  */
 function listUsersFormatPassword() {
-  var classroomName = PropertiesService.getUserProperties().getProperty("classroomNameProp");
+  var userProps = PropertiesService.getUserProperties();
+  var classroomName = userProps.getProperty("classroomNameProp");
+  var groupEmail = userProps.getProperty("groupEmailProp");
   
-  if (classroomName) {
+  console.log("Starting listUsersFormatPassword");
+  console.log("classroomNameProp: " + classroomName);
+  console.log("groupEmailProp: " + groupEmail);
+  
+  if (classroomName && classroomName !== "") {
+    console.log("Calling printUsersFromClassroom");
     printUsersFromClassroom();
-  } else {
+  } else if (groupEmail && groupEmail !== "") {
+    console.log("Calling printUsersFromGroup");
     printUsersFromGroup();
+  } else {
+    console.error("Neither classroomName nor groupEmail found in properties.");
+    SpreadsheetApp.getUi().alert("Error: No classroom or group was selected. Please restart the process.");
+    return;
   }
   
   SpreadsheetApp.flush();
+  
+  var groupSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Group');
+  if (!groupSheet || groupSheet.getLastRow() < 2) {
+    SpreadsheetApp.getUi().alert("No students were found in the selected Classroom or Group. Please check your selection and try again.");
+    return;
+  }
+  
   getUserNames();
   SpreadsheetApp.flush();
   FormatAndCreateListOfStudentPasswords();
@@ -556,8 +590,13 @@ function listUsersFormatPassword() {
  * Handles pagination for large classes.
  */
 function printUsersFromClassroom() {
-  var classroomName = PropertiesService.getUserProperties().getProperty("classroomNameProp");
-  var teacherEmail = PropertiesService.getUserProperties().getProperty("teacherEmailProp");
+  var userProps = PropertiesService.getUserProperties();
+  var classroomName = userProps.getProperty("classroomNameProp");
+  var teacherEmail = userProps.getProperty("teacherEmailProp");
+  
+  console.log("In printUsersFromClassroom");
+  console.log("classroomName: " + classroomName);
+  console.log("teacherEmail: " + teacherEmail);
   
   if (!classroomName || !teacherEmail) {
     console.error("Missing classroom or teacher information.");
@@ -568,9 +607,12 @@ function printUsersFromClassroom() {
   
   // Find the Course ID from name
   var courses = getClassrooms(teacherEmail);
+  console.log("Found " + courses.length + " courses for teacher.");
   for (var i = 0; i < courses.length; i++) {
+    console.log("Checking course: " + courses[i].name);
     if (courses[i].name === classroomName) {
       courseId = courses[i].id;
+      console.log("Matched courseId: " + courseId);
       break;
     }
   }
@@ -832,16 +874,4 @@ function generateRandomPassword(length) {
     words.push(wordList[randomIndex]);
   }
   return words.join("-");
-  }
-
-  /**
-  * Temporary function to test password generation in the script editor logs.
-  */
-  function testGeneratePasswords() {
-  var randomPass = generateRandomPassword(12);
-  Logger.log("Random Password (12): " + randomPass);
-
-  var sampleWords = ["ocean", "mountain", "river", "forest", "desert", "prairie", "valley", "peak", "glacier", "island"];
-  var wordPass = generateWordBasedPassword(sampleWords);
-  Logger.log("Word Password (3): " + wordPass);
   }
