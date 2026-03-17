@@ -7,11 +7,21 @@
  */
 
 const APP_CONFIG = {
-  VERSION: "1.2.0",
+  VERSION: "1.3.0",
   MARKETPLACE_URL: "https://workspace.google.com/marketplace/app/spogou/195844102395",
   PRIVACY_POLICY_URL: "https://tools.no-substitute.com/pp",
   TERMS_OF_SERVICE_URL: "https://tools.no-substitute.com/tos",
   CHANGELOG: [
+    {
+      date: "2026-03-17",
+      changes: [
+        "Feature: Implemented alternative password generation options (Simple, Random, Word-based).",
+        "Feature: Added word-based generator using a simple 200+ word list.",
+        "UI: Updated setup sidebar with interactive password generation toggles and customizable length settings.",
+        "Fix: Improved authorization resilience and added critical startup logging for troubleshooting.",
+        "Internal: Refactored password logic into modular generators."
+      ]
+    },
     {
       date: "2026-02-13",
       changes: [
