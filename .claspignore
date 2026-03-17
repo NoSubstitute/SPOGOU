@@ -1,7 +1,0 @@
-# Ignore all files
-**/**
-
-# Exceptions: allow project files
-!appsscript.json
-!*.gs
-!*.html
