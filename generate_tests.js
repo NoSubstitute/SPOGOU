@@ -69,7 +69,41 @@ const randomPasswordTests = {
   }
 };
 
+// --- Tests for generateWordBasedPassword() ---
+
+const wordList = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape"];
+
+/**
+ * Generates a password by joining random words from a list.
+ */
+function generateWordBasedPassword(wordList) {
+  var words = [];
+  var count = 3; // Use 3 words as default
+  for (var i = 0; i < count; i++) {
+    var randomIndex = Math.floor(Math.random() * wordList.length);
+    words.push(wordList[randomIndex]);
+  }
+  return words.join("-");
+}
+
+const wordPasswordTests = {
+  "should return a string containing words from the list": () => {
+    const pass = generateWordBasedPassword(wordList);
+    const parts = pass.split("-");
+    assert.equal(parts.length, 3, "Should have 3 words");
+    parts.forEach(word => {
+      assert.truthy(wordList.includes(word), `Word "${word}" should be in the word list`);
+    });
+  },
+  "should generate different passwords on subsequent calls": () => {
+    const pass1 = generateWordBasedPassword(wordList);
+    const pass2 = generateWordBasedPassword(wordList);
+    assert.truthy(pass1 !== pass2, "Should be different");
+  }
+};
+
 if (typeof require !== 'undefined' && require.main === module) {
-  const allPassed = runTests("Random Password Generator", randomPasswordTests);
-  if (!allPassed) process.exit(1);
+  const randomPassed = runTests("Random Password Generator", randomPasswordTests);
+  const wordPassed = runTests("Word Password Generator", wordPasswordTests);
+  if (!randomPassed || !wordPassed) process.exit(1);
 }

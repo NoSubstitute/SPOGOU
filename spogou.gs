@@ -788,4 +788,31 @@ function generateRandomPassword(length) {
     password += charset.charAt(randomIndex);
   }
   return password;
-}
+  }
+
+  /**
+  * Generates a password by joining random words from a list.
+  * @param {string[]} wordList Array of words to pick from.
+  * @param {number} [count=3] Number of words to include.
+  */
+  function generateWordBasedPassword(wordList, count) {
+  count = count || 3;
+  var words = [];
+  for (var i = 0; i < count; i++) {
+    var randomIndex = Math.floor(Math.random() * wordList.length);
+    words.push(wordList[randomIndex]);
+  }
+  return words.join("-");
+  }
+
+  /**
+  * Temporary function to test password generation in the script editor logs.
+  */
+  function testGeneratePasswords() {
+  var randomPass = generateRandomPassword(12);
+  Logger.log("Random Password (12): " + randomPass);
+
+  var sampleWords = ["ocean", "mountain", "river", "forest", "desert", "prairie", "valley", "peak", "glacier", "island"];
+  var wordPass = generateWordBasedPassword(sampleWords);
+  Logger.log("Word Password (3): " + wordPass);
+  }
