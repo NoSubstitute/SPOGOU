@@ -13,6 +13,24 @@
             M.updateTextFields();
             var elems = document.querySelectorAll('select');
             M.FormSelect.init(elems);
+            
+            // Toggle visibility of alt password options
+            $('#altPass').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#altOptions').show();
+                } else {
+                    $('#altOptions').hide();
+                }
+            });
+            
+            // Toggle visibility of random length input
+            $('#passType').change(function() {
+                if ($(this).val() === 'random') {
+                    $('#randomLengthBox').show();
+                } else {
+                    $('#randomLengthBox').hide();
+                }
+            });
         });
     </script>
     <style>
@@ -38,6 +56,7 @@
             display: none;
         }
         .info-box { font-size: 0.9rem; padding: 10px; margin-bottom: 15px; }
+        .section-header { margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
     </style>
     <div class="container">
         <h6><b>Step 1: Identify Target Users</b></h6>
@@ -75,6 +94,10 @@
                 </div>
             </div>
 
+            <div class="input-field col s12 section-header">
+                <h6><b>Step 2: Password Options</b></h6>
+            </div>
+
             <div class="input-field col s12">
                 <select id="changePass">
                     <option value="FALSE">FALSE</option>
@@ -83,7 +106,32 @@
                 <label>Force password reset on first login?</label>
             </div>
 
-            <div class="col s12" style="text-align: right; margin-top: 10px;">
+            <div class="col s12">
+                <p>
+                    <label>
+                        <input type="checkbox" id="altPass" />
+                        <span>Use alternative password generation</span>
+                    </label>
+                </p>
+            </div>
+
+            <div id="altOptions" style="display: none;">
+                <div class="input-field col s12">
+                    <select id="passType">
+                        <option value="simple">Simple (Firstname + Numbers)</option>
+                        <option value="random">Random Characters</option>
+                        <option value="word">Word-based</option>
+                    </select>
+                    <label>Password Type</label>
+                </div>
+                
+                <div id="randomLengthBox" class="input-field col s12" style="display: none;">
+                    <input id="passLength" type="number" value="12" min="8" max="32">
+                    <label for="passLength">Password Length</label>
+                </div>
+            </div>
+
+            <div class="col s12" style="text-align: right; margin-top: 20px;">
                 <button type="button" class="btn waves-effect waves-light blue" id="btnNext" disabled>NEXT</button>
             </div>
         </div>
@@ -229,9 +277,22 @@
 
         buttonNext.addEventListener("click", function() {
             buttonNext.disabled = true; buttonNext.textContent = "SAVING...";
+            
+            var altPassVal = document.getElementById("altPass").checked ? "TRUE" : "FALSE";
+            var passTypeVal = document.getElementById("passType").value;
+            var passLengthVal = document.getElementById("passLength").value;
+            
             google.script.run.withSuccessHandler(function() {
                 google.script.run.openSidebarPrepPasswords();
-            }).saveData(field1.value, field2.value, document.getElementById("changePass").value, field3.value);
+            }).saveData(
+                field1.value, 
+                field2.value, 
+                document.getElementById("changePass").value, 
+                field3.value,
+                altPassVal,
+                passTypeVal,
+                passLengthVal
+            );
         });
     </script>
 </body>

@@ -165,23 +165,30 @@ function prepareSheets() {
 
 /**
  * Saves user input data (group email, teacher email, change password setting, classroom) to UserProperties.
- * 
+ *
  * @param {string} groupemail1 - The group email address.
  * @param {string} teacheremail1 - The teacher's email address.
  * @param {string} changePass1 - Whether to force password change on next login.
  * @param {string} classroomName - The name of the selected classroom (optional).
+ * @param {string} altPass1 - Whether to use alternative password generation (TRUE/FALSE).
+ * @param {string} passType1 - The type of password to generate (simple, random, word).
+ * @param {string} passLength1 - The length for random passwords.
  * @returns {Array} An array containing the input data and domain.
  */
-function saveData(groupemail1, teacheremail1, changePass1, classroomName) {
+function saveData(groupemail1, teacheremail1, changePass1, classroomName, altPass1, passType1, passLength1) {
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
-  PropertiesService.getUserProperties().setProperty("groupEmailProp", groupemail1 || "");
-  PropertiesService.getUserProperties().setProperty("teacherEmailProp", teacheremail1);
-  PropertiesService.getUserProperties().setProperty("changePassProp", changePass1);
-  PropertiesService.getUserProperties().setProperty("classroomNameProp", classroomName || "");
+  var userProps = PropertiesService.getUserProperties();
+  userProps.setProperty("groupEmailProp", groupemail1 || "");
+  userProps.setProperty("teacherEmailProp", teacheremail1);
+  userProps.setProperty("changePassProp", changePass1);
+  userProps.setProperty("classroomNameProp", classroomName || "");
+  userProps.setProperty("alternativePassProp", altPass1 || "FALSE");
+  userProps.setProperty("passTypeProp", passType1 || "simple");
+  userProps.setProperty("passLengthProp", passLength1 || "12");
+
   var result = [groupemail1, teacheremail1, changePass1, domain, classroomName];
   return [result];
 }
-
 /**
  * Fetches users from the specified Google Workspace group and writes them to the 'Group' sheet.
  * Handles pagination for large groups.
@@ -295,96 +302,118 @@ function FormatAndCreateListOfStudentPasswords() {
   sheet.insertColumnsAfter(sheet.getActiveRange().getLastColumn(), 1);
   sheet.getActiveRange().offset(0, sheet.getActiveRange().getNumColumns(), sheet.getActiveRange().getNumRows(), 1).activate();
   sheet.getRange('B1').activate();
-  sheet.getCurrentCell().setValue('PasswordTemp');
-
-  // Removing the Class splitter, as other organisations may not have this, and I should make this work for others first, and only after make a special version for myself.
-  // Splitting my familyName column I get Class as a separate column
-  // sheet.getRange('D1').activate();
-  // sheet.getCurrentCell().setValue('LastName');
-  // sheet.getRange('D:D').activate();
-  // sheet.getRange('D:D').splitTextToColumns(' - ');
-  // sheet.getRange('E1').activate();
-  // sheet.getCurrentCell().setValue('Class');
-  sheet.getRange('E1').activate();
-  sheet.getCurrentCell().setValue('PreparePass');
-
-  // Now it's time to create the simple passwords Based off firstNames in C and four random numbers
-  // Included a length check of names in C; if too short (passwords must be 8+ characters) repeat firstName
-  // Put the temp passwords in column E
-  sheet.getRange('E2').activate();
-  sheet.getCurrentCell().setFormula('=IFS(LEN(C2) > 3;C2 & RANDBETWEEN(1111;9999);LEN(C2) > 2;C2 & RANDBETWEEN(11111;99999);LEN(C2) > 1;C2 & C2 & RANDBETWEEN(1111;9999))');
-  sheet.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
-
-  // ADDING A DELAY HERE! The previous auto-fill command is slow
-  // A flush makes sure previous code is done. https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app#flush
-  SpreadsheetApp.flush();
-
-  // Copying those temp passwords from E to E, but only values, and not formulas
-  sheet.getRange('E1').activate();
-  sheet.getRange('E:E').copyTo(sheet.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
-
-  // Another delay needed here
-  SpreadsheetApp.flush();
-
-  // Removing characters that can't be used in passwords
-  // Grab data from column E and put in column B
-  sheet.getRange('B2').activate();
-  sheet.getCurrentCell().setFormula('=SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(E2;"å";"a");"ä";"a");"ö";"o");"Å";"A");"Ä";"A");"Ö";"O");"é";"e");"Ü";"u");"ü";"u");"-";"-");"ë";"e");"è";"e");"Ø";"O");"ø";"o");"õ";"o");"ó";"o");"€";"€");"€";"€")');
-  sheet.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
-
-  // Another delay needed here
-  SpreadsheetApp.flush();
-
-  // Copying those clean passwords from B to B, but only values, and not formulas
-  var spreadsheet = SpreadsheetApp.getActive();
-  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
-  var sheet = spreadsheet.getActiveSheet();
-  sheet.getRange('B1').activate();
-  sheet.getRange('B:B').copyTo(sheet.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
-
-  // Deleting the PreparePass column E
-  var spreadsheet = SpreadsheetApp.getActive();
-  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
-  var sheet = spreadsheet.getActiveSheet();
-  sheet.getRange('E:E').activate();
-  sheet.deleteColumns(sheet.getActiveRange().getColumn(), sheet.getActiveRange().getNumColumns());
-
-  // Naming the B column to Password, as that's what it needs to be when I'm finished
-  sheet.getRange('B1').activate();
   sheet.getCurrentCell().setValue('Password');
 
-  // Deleting empty columns
+  // Grab password settings from properties
+  var userProps = PropertiesService.getUserProperties();
+  var altPass = userProps.getProperty("alternativePassProp") === "TRUE";
+  var passType = userProps.getProperty("passTypeProp") || "simple";
+  var passLength = parseInt(userProps.getProperty("passLengthProp") || "12");
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  
+  // Column C is FirstName (index 2 in values array)
+  var range = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn());
+  var data = range.getValues();
+  var passwords = [];
+
+  for (var i = 0; i < data.length; i++) {
+    var firstName = data[i][2] ? data[i][2].toString() : "";
+    var generatedPass = "";
+
+    if (altPass) {
+      if (passType === "random") {
+        generatedPass = generateRandomPassword(passLength);
+      } else if (passType === "word") {
+        generatedPass = generateWordBasedPassword(WORD_LIST);
+      } else {
+        generatedPass = generateSimplePassword(firstName);
+      }
+    } else {
+      generatedPass = generateSimplePassword(firstName);
+    }
+    passwords.push([generatedPass]);
+  }
+
+  // Set the passwords in Column B
+  sheet.getRange(2, 2, passwords.length, 1).setValues(passwords);
+
+  SpreadsheetApp.flush();
+}
+
+/**
+ * Generates a simple password based on firstName and random numbers.
+ * Replaces non-ASCII characters.
+ */
+function generateSimplePassword(firstName) {
+  var cleanName = cleanString(firstName);
+  var pass = "";
+  if (cleanName.length > 3) {
+    pass = cleanName + Math.floor(Math.random() * (9999 - 1111 + 1) + 1111);
+  } else if (cleanName.length > 2) {
+    pass = cleanName + Math.floor(Math.random() * (99999 - 11111 + 1) + 11111);
+  } else if (cleanName.length > 1) {
+    pass = cleanName + cleanName + Math.floor(Math.random() * (9999 - 1111 + 1) + 1111);
+  } else {
+    pass = "Password" + Math.floor(Math.random() * (9999 - 1111 + 1) + 1111);
+  }
+  return pass;
+}
+
+/**
+ * Replaces common Swedish and other characters with their ASCII equivalents.
+ */
+function cleanString(str) {
+  if (!str) return "";
+  var replacements = {
+    'å': 'a', 'ä': 'a', 'ö': 'o', 'Å': 'A', 'Ä': 'A', 'Ö': 'O',
+    'é': 'e', 'Ü': 'u', 'ü': 'u', 'ë': 'e', 'è': 'e', 'Ø': 'O',
+    'ø': 'o', 'õ': 'o', 'ó': 'o'
+  };
+  return str.split('').map(function(char) {
+    return replacements[char] || char;
+  }).join('').replace(/[^a-zA-Z0-9]/g, '');
+}
+
+/**
+ * Tidies up the spreadsheet after password generation.
+ */
+function tidyUpSpreadsheet() {
   var spreadsheet = SpreadsheetApp.getActive();
-  var maxColumns = spreadsheet.getActiveSheet().getMaxColumns();
-  var lastColumn = spreadsheet.getActiveSheet().getLastColumn();
-  spreadsheet.getActiveSheet().deleteColumns(lastColumn + 1, maxColumns - lastColumn);
+  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('Users'), true);
+  var sheet = spreadsheet.getActiveSheet();
+  
+  // Naming the B column to Password
+  sheet.getRange('B1').setValue('Password');
+
+  // Deleting empty columns
+  var maxColumns = sheet.getMaxColumns();
+  var lastColumn = sheet.getLastColumn();
+  if (maxColumns > lastColumn) {
+    sheet.deleteColumns(lastColumn + 1, maxColumns - lastColumn);
+  }
 
   // Remove empty rows
-  var spreadsheet = SpreadsheetApp.getActive();
-  var maxRows = spreadsheet.getActiveSheet().getMaxRows();
-  var lastRow = spreadsheet.getActiveSheet().getLastRow();
-  spreadsheet.getActiveSheet().deleteRows(lastRow + 1, maxRows - lastRow);
-
-  // Tidying up
+  var maxRows = sheet.getMaxRows();
+  var lastRow = sheet.getLastRow();
+  if (maxRows > lastRow) {
+    sheet.deleteRows(lastRow + 1, maxRows - lastRow);
+  }
 
   // Adding filters
-  var spreadsheet = SpreadsheetApp.getActive();
-  var sheet = spreadsheet.getActiveSheet();
-  sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).activate();
-  sheet = spreadsheet.getActiveSheet();
   sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).createFilter();
   sheet.getRange('A1').activate();
 
   // Resizing columns
-  var spreadsheet = SpreadsheetApp.getActive();
-  sheet = spreadsheet.getActiveSheet();
-  spreadsheet.getActiveSheet().autoResizeColumns(1, 4);
-  for (var i = 1; i < spreadsheet.getActiveSheet().getMaxColumns() + 1; i++) {
-    var currentwidth = spreadsheet.getActiveSheet().getColumnWidth(i)
-    spreadsheet.getActiveSheet().setColumnWidth(i, currentwidth + 25)
-  };
+  sheet.autoResizeColumns(1, 4);
+  for (var i = 1; i <= sheet.getMaxColumns(); i++) {
+    var currentwidth = sheet.getColumnWidth(i);
+    sheet.setColumnWidth(i, currentwidth + 25);
+  }
   SpreadsheetApp.flush();
-  // Move sheet Users to be the first sheet, to prepare for cleanup
+  
+  // Move sheet Users to be the first sheet
   SpreadsheetApp.getActiveSpreadsheet().moveActiveSheet(1);
   SpreadsheetApp.flush();
 }
