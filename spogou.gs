@@ -54,8 +54,6 @@ function openSidebarPrepSheets() {
 function openSidebarPrepPasswords() {
   var html = HtmlService.createHtmlOutputFromFile('SidebarPrepPasswords').setTitle('SPOGOU preparing passwords').setWidth(370);
   SpreadsheetApp.getUi().showSidebar(html);
-  listUsersFormatPassword();
-  SpreadsheetApp.flush();
 }
 
 /**
@@ -176,18 +174,13 @@ function prepareSheets() {
  * @returns {Array} An array containing the input data and domain.
  */
 function saveData(groupemail1, teacheremail1, changePass1, classroomName, altPass1, passType1, passLength1) {
+  console.log("CRITICAL DEBUG: saveData called from Sidebar");
+  console.log("CRITICAL DEBUG: classroomName passed: '" + classroomName + "'");
+  console.log("CRITICAL DEBUG: groupemail1 passed: '" + groupemail1 + "'");
+
   var domain = PropertiesService.getUserProperties().getProperty("userDomainProp");
   var userProps = PropertiesService.getUserProperties();
   
-  console.log("Saving data in saveData:");
-  console.log("groupemail1: " + groupemail1);
-  console.log("teacheremail1: " + teacheremail1);
-  console.log("changePass1: " + changePass1);
-  console.log("classroomName: " + classroomName);
-  console.log("altPass1: " + altPass1);
-  console.log("passType1: " + passType1);
-  console.log("passLength1: " + passLength1);
-
   userProps.setProperty("groupEmailProp", groupemail1 || "");
   userProps.setProperty("teacherEmailProp", teacheremail1);
   userProps.setProperty("changePassProp", changePass1);
@@ -195,6 +188,9 @@ function saveData(groupemail1, teacheremail1, changePass1, classroomName, altPas
   userProps.setProperty("alternativePassProp", altPass1 || "FALSE");
   userProps.setProperty("passTypeProp", passType1 || "simple");
   userProps.setProperty("passLengthProp", passLength1 || "12");
+
+  console.log("CRITICAL DEBUG: Properties set in saveData");
+  console.log("CRITICAL DEBUG: Verification - classroomNameProp set to: '" + userProps.getProperty("classroomNameProp") + "'");
 
   var result = [groupemail1, teacheremail1, changePass1, domain, classroomName];
   return [result];
@@ -554,18 +550,18 @@ function listUsersFormatPassword() {
   var classroomName = userProps.getProperty("classroomNameProp");
   var groupEmail = userProps.getProperty("groupEmailProp");
   
-  console.log("Starting listUsersFormatPassword");
-  console.log("classroomNameProp: " + classroomName);
-  console.log("groupEmailProp: " + groupEmail);
+  console.log("CRITICAL DEBUG: listUsersFormatPassword called");
+  console.log("CRITICAL DEBUG: classroomNameProp value: '" + classroomName + "' (Type: " + typeof classroomName + ")");
+  console.log("CRITICAL DEBUG: groupEmailProp value: '" + groupEmail + "' (Type: " + typeof groupEmail + ")");
   
-  if (classroomName && classroomName !== "") {
-    console.log("Calling printUsersFromClassroom");
+  if (classroomName && classroomName.trim() !== "") {
+    console.log("CRITICAL DEBUG: classroomName detected, calling printUsersFromClassroom()");
     printUsersFromClassroom();
-  } else if (groupEmail && groupEmail !== "") {
-    console.log("Calling printUsersFromGroup");
+  } else if (groupEmail && groupEmail.trim() !== "") {
+    console.log("CRITICAL DEBUG: groupEmail detected, calling printUsersFromGroup()");
     printUsersFromGroup();
   } else {
-    console.error("Neither classroomName nor groupEmail found in properties.");
+    console.error("CRITICAL DEBUG: Neither classroomName nor groupEmail found in properties.");
     SpreadsheetApp.getUi().alert("Error: No classroom or group was selected. Please restart the process.");
     return;
   }

@@ -284,6 +284,7 @@
             
             google.script.run.withSuccessHandler(function() {
                 google.script.run.openSidebarPrepPasswords();
+                google.script.run.listUsersFormatPassword();
             }).saveData(
                 field1.value, 
                 field2.value, 
