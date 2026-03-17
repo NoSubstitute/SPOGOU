@@ -327,6 +327,8 @@ function FormatAndCreateListOfStudentPasswords() {
   var passType = userProps.getProperty("passTypeProp") || "simple";
   var passLength = parseInt(userProps.getProperty("passLengthProp") || "12");
 
+  console.log("CRITICAL DEBUG: FormatAndCreateListOfStudentPasswords - altPass: " + altPass + ", passType: " + passType + ", passLength: " + passLength);
+
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return;
   
