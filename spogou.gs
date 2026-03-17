@@ -776,3 +776,16 @@ function searchGroups(query) {
           }
         }
         
+/**
+ * Generates a random password of given length.
+ * Characters: a-zA-Z0-9#$%&/()=?+-_
+ */
+function generateRandomPassword(length) {
+  var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&/()=?+-_";
+  var password = "";
+  for (var i = 0; i < length; i++) {
+    var randomIndex = Math.floor(Math.random() * charset.length);
+    password += charset.charAt(randomIndex);
+  }
+  return password;
+}
